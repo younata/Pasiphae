@@ -158,6 +158,47 @@ RSpec.describe Api::V1::UserController, type: :controller do
         expect(response.body).to eq("HTTP Token: Access denied.\n")
       end
     end
+
+    describe 'with an application token' do
+      before do
+        request.headers['APP_TOKEN'] = 'GreatSuccess'
+      end
+
+      describe 'without a user api token' do
+        before do
+          put :add_device_token
+        end
+
+        it 'rejects the request with http 401' do
+          expect(response).to have_http_status(401)
+        end
+
+        it 'tells the user why' do
+          expect(response.body).to eq("HTTP Token: Access denied.\n")
+        end
+      end
+
+      describe 'with a valid user api token' do
+        let!(:user) do
+          u = User.new(email: 'user@example.com', password: 'password', password_confirmation: 'password')
+          u.save
+          u
+        end
+
+        before do
+          request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
+          put :add_device_token, { :token => 'foofoobarbar' }
+        end
+
+        it "returns http success" do
+          expect(response).to have_http_status(:success)
+        end
+
+        it "assigns the device token to the device used to login" do
+          expect(user.devices.first.push_token).to eq('foofoobarbar')
+        end
+      end
+    end
   end
 
   describe "DELETE #delete" do
