@@ -1,9 +1,10 @@
 Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
-      get 'user/create'
-      get 'user/delete'
-      get 'user/edit'
+      put  'user/create'
+      post 'user/login'
+      put  'user/add_device_token'
+      delete 'user/delete'
     end
   end
 
