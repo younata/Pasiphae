@@ -1,18 +1,11 @@
 require 'rails_helper'
+require 'api_helper'
 
 RSpec.describe Api::V1::UserController, type: :controller do
   describe "PUT #create" do
-    describe 'without an application token' do
+    it_behaves_like 'an api request' do
       before do
         put :create, { :email => 'example@example.com', :password => 'example' }
-      end
-
-      it 'rejects the request with http 401' do
-        expect(response).to have_http_status(401)
-      end
-
-      it 'tells the user why' do
-        expect(response.body).to eq("HTTP Token: Access denied.\n")
       end
     end
 
@@ -66,17 +59,9 @@ RSpec.describe Api::V1::UserController, type: :controller do
   end
 
   describe "POST #login" do
-    describe 'without an application token' do
+    it_behaves_like 'an api request' do
       before do
         post :login
-      end
-
-      it 'rejects the request with http 401' do
-        expect(response).to have_http_status(401)
-      end
-
-      it 'tells the user why' do
-        expect(response.body).to eq("HTTP Token: Access denied.\n")
       end
     end
 
@@ -145,17 +130,9 @@ RSpec.describe Api::V1::UserController, type: :controller do
   end
 
   describe "PUT #add_device_token" do
-    describe 'without an application token' do
+    it_behaves_like 'an api request' do
       before do
         put :add_device_token
-      end
-
-      it 'rejects the request with http 401' do
-        expect(response).to have_http_status(401)
-      end
-
-      it 'tells the user why' do
-        expect(response.body).to eq("HTTP Token: Access denied.\n")
       end
     end
 
@@ -164,17 +141,9 @@ RSpec.describe Api::V1::UserController, type: :controller do
         request.headers['APP_TOKEN'] = 'GreatSuccess'
       end
 
-      describe 'without a user api token' do
+      it_behaves_like 'an api requiring a user' do
         before do
           put :add_device_token
-        end
-
-        it 'rejects the request with http 401' do
-          expect(response).to have_http_status(401)
-        end
-
-        it 'tells the user why' do
-          expect(response.body).to eq("HTTP Token: Access denied.\n")
         end
       end
 
@@ -202,17 +171,9 @@ RSpec.describe Api::V1::UserController, type: :controller do
   end
 
   describe "DELETE #delete" do
-    describe 'without an application token' do
+    it_behaves_like 'an api request' do
       before do
         delete :delete
-      end
-
-      it 'rejects the request with http 401' do
-        expect(response).to have_http_status(401)
-      end
-
-      it 'tells the user why' do
-        expect(response.body).to eq("HTTP Token: Access denied.\n")
       end
     end
 
@@ -221,17 +182,9 @@ RSpec.describe Api::V1::UserController, type: :controller do
         request.headers['APP_TOKEN'] = 'GreatSuccess'
       end
 
-      describe 'without a user api token' do
+      it_behaves_like 'an api requiring a user' do
         before do
           delete :delete
-        end
-
-        it 'rejects the request with http 401' do
-          expect(response).to have_http_status(401)
-        end
-
-        it 'tells the user why' do
-          expect(response.body).to eq("HTTP Token: Access denied.\n")
         end
       end
 

@@ -11,7 +11,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160626155843) do
+ActiveRecord::Schema.define(version: 20160629213546) do
+
+  create_table "articles", force: :cascade do |t|
+    t.string   "title"
+    t.string   "url"
+    t.string   "summary"
+    t.datetime "published"
+    t.datetime "updated"
+    t.string   "content"
+    t.integer  "feed_id"
+  end
+
+  add_index "articles", ["feed_id"], name: "index_articles_on_feed_id"
+
+  create_table "articles_authors", id: false, force: :cascade do |t|
+    t.integer "article_id"
+    t.integer "author_id"
+  end
+
+  add_index "articles_authors", ["article_id"], name: "index_articles_authors_on_article_id"
+  add_index "articles_authors", ["author_id"], name: "index_articles_authors_on_author_id"
+
+  create_table "authors", force: :cascade do |t|
+    t.string  "name"
+    t.string  "email"
+    t.integer "article_id"
+  end
+
+  add_index "authors", ["article_id"], name: "index_authors_on_article_id"
 
   create_table "devices", force: :cascade do |t|
     t.string  "push_token"
@@ -20,6 +48,23 @@ ActiveRecord::Schema.define(version: 20160626155843) do
   end
 
   add_index "devices", ["user_id"], name: "index_devices_on_user_id"
+
+  create_table "feeds", force: :cascade do |t|
+    t.string   "title"
+    t.string   "url"
+    t.string   "summary"
+    t.string   "image_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "feeds_users", id: false, force: :cascade do |t|
+    t.integer "feed_id"
+    t.integer "user_id"
+  end
+
+  add_index "feeds_users", ["feed_id"], name: "index_feeds_users_on_feed_id"
+  add_index "feeds_users", ["user_id"], name: "index_feeds_users_on_user_id"
 
   create_table "users", force: :cascade do |t|
     t.string   "email"

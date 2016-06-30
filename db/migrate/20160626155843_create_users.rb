@@ -6,6 +6,7 @@ class CreateUsers < ActiveRecord::Migration
 
       t.timestamps null: false
     end
+
     add_index :users, :email, unique: true
 
     create_table :devices do |t|

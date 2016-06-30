@@ -38,7 +38,7 @@ class Api::V1::UserController < Api::V1::ApiController
     push_token = params[:token]
     @device.push_token = push_token
     @device.save
-    render :json => true
+    render nothing: true
   end
 
 private

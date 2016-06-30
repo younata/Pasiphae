@@ -3,6 +3,7 @@ class User < ActiveRecord::Base
 
   has_secure_password
   has_many :devices, dependent: :destroy
+  has_and_belongs_to_many :feeds
 
   validates :email, presence: true, uniqueness: { case_sensitive: false }
   validates :password, presence: true
