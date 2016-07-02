@@ -39,6 +39,7 @@ group :development, :test do
   gem 'sqlite3'
   gem 'rspec-rails'
   gem 'factory_girl'
+  gem 'pivotal-tracker'
 end
 
 group :production do

@@ -1,3 +1,24 @@
 machine:
   ruby:
     version: 2.2.2
+
+dependencies:
+  pre:
+    - curl -v -L -o cf-cli_amd64.deb 'https://cli.run.pivotal.io/stable?release=debian64&source=github'
+    - sudo dpkg -i cf-cli_amd64.deb
+    - cf -v
+
+test:
+  post:
+    - cf api https://api.run.pivotal.io
+    - cf auth $PWS_USER $PWS_PASSWORD
+    - cf target -o $PWS_USER -s dev
+    - cf a
+
+deployment:
+  production:
+    branch: master
+    commands:
+      - cf push -f manifest-web.yml
+      - cf push -f manifest-worker.yml
+      - bundle exec rake ci:deliver
