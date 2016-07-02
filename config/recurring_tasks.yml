@@ -1,0 +1,5 @@
+FeedRefresherTask:
+  cron: "17 * * * *"
+  class: "FeedRefresher"
+  queue: feed_refresher
+  description: "This task will will refresh the feeds list 17 minutes after the start of every hour"

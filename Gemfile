@@ -26,6 +26,13 @@ gem 'unicorn'
 
 gem 'validate_url'
 
+gem 'resque'
+gem 'resque-scheduler'
+gem 'redis-rails'
+
+gem 'rest-client'
+gem 'feedjira', git: 'https://github.com/feedjira/feedjira', branch: 'master'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
