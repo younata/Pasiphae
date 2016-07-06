@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'api_helper'
 
-RSpec.describe Api::V1::FeedsControllerController, type: :controller do
+RSpec.describe Api::V1::FeedsController, type: :controller do
   describe "POST #subscribe" do
     it_behaves_like 'an api request' do
       before do
@@ -11,7 +11,7 @@ RSpec.describe Api::V1::FeedsControllerController, type: :controller do
 
     describe 'with an application token' do
       before do
-        request.headers['APP_TOKEN'] = 'GreatSuccess'
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
       end
 
       it_behaves_like 'an api requiring a user' do
@@ -145,7 +145,7 @@ RSpec.describe Api::V1::FeedsControllerController, type: :controller do
 
     describe 'with an application token' do
       before do
-        request.headers['APP_TOKEN'] = 'GreatSuccess'
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
       end
 
       it_behaves_like 'an api requiring a user' do
@@ -264,7 +264,7 @@ RSpec.describe Api::V1::FeedsControllerController, type: :controller do
 
     describe 'with an application token' do
       before do
-        request.headers['APP_TOKEN'] = 'GreatSuccess'
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
       end
 
       it_behaves_like 'an api requiring a user' do

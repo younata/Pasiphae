@@ -1,4 +1,6 @@
 require 'feed_helper'
+include FeedHelper
+
 
 class FeedRefresher
   def self.perform()

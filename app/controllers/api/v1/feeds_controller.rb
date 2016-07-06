@@ -1,4 +1,4 @@
-class Api::V1::FeedsControllerController < ApplicationController
+class Api::V1::FeedsController < Api::V1::ApiController
   before_filter :restrict_api_access
 
   def subscribe

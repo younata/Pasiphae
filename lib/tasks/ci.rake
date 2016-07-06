@@ -16,8 +16,6 @@ namespace :ci do
       if search_result.length > 0
         story.notes.create(:text => "Delivered by staging deploy script.")
         story.update({"current_state" => "delivered"})
-      else
-        puts "Coult not find #{story.id} in git repo."
       end
     end
   end

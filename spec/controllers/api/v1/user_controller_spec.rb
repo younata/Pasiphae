@@ -11,7 +11,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
     describe 'with an application token' do
       before do
-        request.headers['APP_TOKEN'] = 'GreatSuccess'
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
       end
 
       describe 'when a user with that email does not exist' do
@@ -73,7 +73,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
       end
 
       before do
-        request.headers['APP_TOKEN'] = 'GreatSuccess'
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
       end
 
       describe 'when a user with that email and password exists' do
@@ -138,7 +138,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
     describe 'with an application token' do
       before do
-        request.headers['APP_TOKEN'] = 'GreatSuccess'
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
       end
 
       it_behaves_like 'an api requiring a user' do
@@ -179,7 +179,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
     describe 'with an application token' do
       before do
-        request.headers['APP_TOKEN'] = 'GreatSuccess'
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
       end
 
       it_behaves_like 'an api requiring a user' do

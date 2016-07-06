@@ -1,36 +1,16 @@
 Rails.application.routes.draw do
-  namespace :api do
-  namespace :v1 do
-    get 'feeds_controller/subscribe'
-    end
-  end
-
-  namespace :api do
-  namespace :v1 do
-    get 'feeds_controller/unsubscribe'
-    end
-  end
-
-  namespace :api do
-  namespace :v1 do
-    get 'feeds_controller/fetch'
-    end
-  end
-
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
-      put  'user/create'
-      post 'user/login'
-      put  'user/add_device_token'
-      delete 'user/delete'
+      put  'user/create', to: 'user#create'
+      post 'user/login', to: 'user#login'
+      put  'user/add_device_token', to: 'user#add_device_token'
+      delete 'user/delete', to: 'user#delete'
+
+      post 'feeds/subscribe', to: 'feeds#subscribe'
+      post 'feeds/unsubscribe', to: 'feeds#unsubscribe'
+      get 'feeds/fetch', to: 'feeds#fetch'
     end
   end
-
-  # The priority is based upon order of creation: first created -> highest priority.
-  # See how all your routes lay out with "rake routes".
-
-  # You can have the root of your site routed with "root"
-  # root 'welcome#index'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
