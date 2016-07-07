@@ -43,7 +43,13 @@ class Api::V1::FeedsController < Api::V1::ApiController
         hash
       end
     end
-    render json: feeds
+    last_updated_article = Article.order(updated: :desc, published: :desc).first
+
+    last_updated = last_updated_article.updated
+    if last_updated.nil?
+      last_updated = last_updated_article.published
+    end
+    render json: {last_updated: last_updated, feeds: feeds}
   end
 
 private

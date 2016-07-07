@@ -337,25 +337,28 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
           it 'returns feeds and articles published/updated since that date that the user is subscribed to' do
             json = JSON.parse(response.body)
-            expected = JSON.parse(JSON.dump([{
-              "title": nil,
-              "url": "https://example.com/",
-              "summary": nil,
-              "image_url": nil,
-              "articles": [
-                {
-                  "title": "new",
-                  "url": "https://example.com/new",
-                  "summary": nil,
-                  "published": new_article.published.as_json,
-                  "updated": nil,
-                  "content": "this is a new article",
-                  "authors": [
-                    {"name": "foo", "email": nil}
-                  ],
-                }
-              ]
-            }]))
+            expected = JSON.parse(JSON.dump({
+              "last_updated": new_article.published.as_json,
+              "feeds": [{
+                "title": nil,
+                "url": "https://example.com/",
+                "summary": nil,
+                "image_url": nil,
+                "articles": [
+                  {
+                    "title": "new",
+                    "url": "https://example.com/new",
+                    "summary": nil,
+                    "published": new_article.published.as_json,
+                    "updated": nil,
+                    "content": "this is a new article",
+                    "authors": [
+                      {"name": "foo", "email": nil}
+                    ],
+                  }
+                ]
+              }]
+            }))
             expect(json).to eq(expected)
           end
         end
@@ -371,34 +374,37 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
           it 'returns all feeds and recent articles the user is subscribed to' do
             json = JSON.parse(response.body)
-            expected = JSON.parse(JSON.dump([{
-              "title": nil,
-              "url": "https://example.com/",
-              "summary": nil,
-              "image_url": nil,
-              "articles": [
-                {
-                  "title": "new",
-                  "url": "https://example.com/new",
-                  "summary": nil,
-                  "published": new_article.published.as_json,
-                  "updated": nil,
-                  "content": "this is a new article",
-                  "authors": [
-                    {"name": "foo", "email": nil}
-                  ],
-                },
-                {
-                  "title": "old",
-                  "url": "https://example.com/old",
-                  "summary": nil,
-                  "published": old_article.published.as_json,
-                  "updated": nil,
-                  "content": "this is an old article",
-                  "authors": [],
-                }
-              ]
-            }]))
+            expected = JSON.parse(JSON.dump({
+              "last_updated": new_article.published.as_json,
+              "feeds": [{
+                "title": nil,
+                "url": "https://example.com/",
+                "summary": nil,
+                "image_url": nil,
+                "articles": [
+                  {
+                    "title": "new",
+                    "url": "https://example.com/new",
+                    "summary": nil,
+                    "published": new_article.published.as_json,
+                    "updated": nil,
+                    "content": "this is a new article",
+                    "authors": [
+                      {"name": "foo", "email": nil}
+                    ],
+                  },
+                  {
+                    "title": "old",
+                    "url": "https://example.com/old",
+                    "summary": nil,
+                    "published": old_article.published.as_json,
+                    "updated": nil,
+                    "content": "this is an old article",
+                    "authors": [],
+                  }
+                ]
+              }]
+            }))
             expect(json).to eq(expected)
           end
         end
