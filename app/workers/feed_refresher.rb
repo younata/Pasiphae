@@ -3,7 +3,12 @@ include FeedHelper
 
 
 class FeedRefresher
-  def self.perform()
-    update_all_feeds
+  @queue = :feed_refresher
+  def self.perform(feed=nil)
+    if feed.nil?
+      update_all_feeds
+    else
+      update_rss_feed(feed)
+    end
   end
 end

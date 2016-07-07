@@ -1,3 +1,5 @@
+require 'resque'
+
 class Api::V1::FeedsController < Api::V1::ApiController
   before_filter :restrict_api_access
 
@@ -7,6 +9,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
       feed = Feed.find_by(url: url)
       unless feed
         feed = Feed.create(url: url)
+        Resque.enqueue(FeedRefresher, feed)
       end
       unless @user.feeds.exists?(feed.id)
         @user.feeds << feed
@@ -23,19 +26,24 @@ class Api::V1::FeedsController < Api::V1::ApiController
   end
 
   def fetch
+    feeds = nil
     if params['date'] and DateTime.parse(params['date'])
       date = DateTime.parse(params['date'])
       feeds = @user.feeds.map do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
-        articles = feed.articles.where("published > ? OR updated > ?", date, date).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id])
+        articles = feed.articles.where("published > ? OR updated > ?", date, date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id])
         hash[:articles] = articles
         hash
       end
-      render json: feeds
     else
-      json_args = {include: { :articles => { include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id]}}, except: [:id, :created_at, :updated_at]}
-      render json: @user.feeds.to_json(json_args)
+      feeds = @user.feeds.map do |feed|
+        hash = feed.as_json(except: [:id, :created_at, :updated_at])
+        articles = feed.articles.order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id])
+        hash[:articles] = articles
+        hash
+      end
     end
+    render json: feeds
   end
 
 private

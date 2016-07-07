@@ -28,6 +28,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         before do
+          allow(Resque).to receive(:enqueue)
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
         end
 
@@ -40,6 +41,11 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             expect(Feed.all.count).to eq(2)
             expect(Feed.exists?(url: 'https://example.com/1')).to be_truthy
             expect(Feed.exists?(url: 'https://example.com/2')).to be_truthy
+          end
+
+          it 'enqueues a resque task to update each feed' do
+            expect(Resque).to have_received(:enqueue).with(FeedRefresher, Feed.first)
+            expect(Resque).to have_received(:enqueue).with(FeedRefresher, Feed.last)
           end
 
           it 'subscribes the user to those feeds' do
@@ -78,6 +84,12 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             expect(Feed.exists?(url: 'https://example.com/2')).to be_truthy
           end
 
+          it 'enqueues a resque task to update each new feed' do
+            new_feed = Feed.find_by(url: 'https://example.com/2')
+            expect(Resque).to have_received(:enqueue).with(FeedRefresher, new_feed)
+            expect(Resque).to_not have_received(:enqueue).with(FeedRefresher, feed)
+          end
+
           it 'subscribes the user to those feeds' do
             expect(user.feeds.count).to eq(2)
             feed2 = Feed.find_by(url: 'https://example.com/2')
@@ -113,6 +125,12 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             expect(Feed.all.count).to eq(2)
             expect(Feed.exists?(url: 'https://example.com/1')).to be_truthy
             expect(Feed.exists?(url: 'https://example.com/2')).to be_truthy
+          end
+
+          it 'enqueues a resque task to update each new feed' do
+            new_feed = Feed.find_by(url: 'https://example.com/2')
+            expect(Resque).to have_received(:enqueue).with(FeedRefresher, new_feed)
+            expect(Resque).to_not have_received(:enqueue).with(FeedRefresher, feed)
           end
 
           it 'subscribes the user to the feeds they haven\'t already subscribed to' do
@@ -360,15 +378,6 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               "image_url": nil,
               "articles": [
                 {
-                  "title": "old",
-                  "url": "https://example.com/old",
-                  "summary": nil,
-                  "published": old_article.published.as_json,
-                  "updated": nil,
-                  "content": "this is an old article",
-                  "authors": [],
-                },
-                {
                   "title": "new",
                   "url": "https://example.com/new",
                   "summary": nil,
@@ -378,6 +387,15 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   "authors": [
                     {"name": "foo", "email": nil}
                   ],
+                },
+                {
+                  "title": "old",
+                  "url": "https://example.com/old",
+                  "summary": nil,
+                  "published": old_article.published.as_json,
+                  "updated": nil,
+                  "content": "this is an old article",
+                  "authors": [],
                 }
               ]
             }]))

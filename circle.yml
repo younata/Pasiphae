@@ -20,4 +20,5 @@ deployment:
     commands:
       - cf push -f manifest-web.yml
       - cf push -f manifest-worker.yml
+      - cf push -f manifest-scheduler.yml
       - bundle exec rake ci:deliver
