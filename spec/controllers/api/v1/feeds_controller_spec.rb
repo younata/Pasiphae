@@ -28,7 +28,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         before do
-          allow(Resque).to receive(:enqueue)
+          allow(FeedRefresher).to receive(:perform)
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
         end
 
@@ -44,8 +44,8 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           end
 
           it 'enqueues a resque task to update each feed' do
-            expect(Resque).to have_received(:enqueue).with(FeedRefresher, Feed.first)
-            expect(Resque).to have_received(:enqueue).with(FeedRefresher, Feed.last)
+            expect(FeedRefresher).to have_received(:perform).with(Feed.first)
+            expect(FeedRefresher).to have_received(:perform).with(Feed.last)
           end
 
           it 'subscribes the user to those feeds' do
@@ -86,8 +86,8 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
           it 'enqueues a resque task to update each new feed' do
             new_feed = Feed.find_by(url: 'https://example.com/2')
-            expect(Resque).to have_received(:enqueue).with(FeedRefresher, new_feed)
-            expect(Resque).to_not have_received(:enqueue).with(FeedRefresher, feed)
+            expect(FeedRefresher).to have_received(:perform).with(new_feed)
+            expect(FeedRefresher).to_not have_received(:perform).with(feed)
           end
 
           it 'subscribes the user to those feeds' do
@@ -129,8 +129,8 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
           it 'enqueues a resque task to update each new feed' do
             new_feed = Feed.find_by(url: 'https://example.com/2')
-            expect(Resque).to have_received(:enqueue).with(FeedRefresher, new_feed)
-            expect(Resque).to_not have_received(:enqueue).with(FeedRefresher, feed)
+            expect(FeedRefresher).to have_received(:perform).with(new_feed)
+            expect(FeedRefresher).to_not have_received(:perform).with(feed)
           end
 
           it 'subscribes the user to the feeds they haven\'t already subscribed to' do

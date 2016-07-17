@@ -9,7 +9,9 @@ class Api::V1::FeedsController < Api::V1::ApiController
       feed = Feed.find_by(url: url)
       unless feed
         feed = Feed.create(url: url)
-        Resque.enqueue(FeedRefresher, feed)
+        feed.save
+        FeedRefresher.perform(feed)
+        #Resque.enqueue(FeedRefresher, feed)
       end
       unless @user.feeds.exists?(feed.id)
         @user.feeds << feed
@@ -45,9 +47,13 @@ class Api::V1::FeedsController < Api::V1::ApiController
     end
     last_updated_article = Article.order(updated: :desc, published: :desc).first
 
-    last_updated = last_updated_article.updated
-    if last_updated.nil?
-      last_updated = last_updated_article.published
+    if last_updated_article.nil?
+      last_updated = Time.now
+    else
+      last_updated = last_updated_article.updated
+      if last_updated.nil?
+        last_updated = last_updated_article.published
+      end
     end
     render json: {last_updated: last_updated, feeds: feeds}
   end
