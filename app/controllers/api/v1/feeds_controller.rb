@@ -39,7 +39,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
     else
       feeds = @user.feeds.map do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
-        articles = feed.articles.order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+        articles = feed.articles.order(published: :desc).limit(20).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         hash[:articles] = articles
         hash
       end

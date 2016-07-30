@@ -311,7 +311,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         let!(:new_article) do
-          a = Article.new(title: 'new', published: 2.seconds.ago, url: 'https://example.com/new', feed: feed, content: 'this is a new article')
+          a = Article.new(title: 'new', published: 0.seconds.ago, url: 'https://example.com/new', feed: feed, content: 'this is a new article')
           a.save
           a
         end
@@ -364,6 +364,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         describe 'without a date parameter' do
+          let!(:extra_articles) do
+            create_list(:article, 19, feed: feed)
+          end
+
           before do
             get :fetch
           end
@@ -372,8 +376,20 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             expect(response).to have_http_status(:ok)
           end
 
-          it 'returns all feeds and recent articles the user is subscribed to' do
+          it 'returns all feeds and the 20 most recent articles the user is subscribed to' do
             json = JSON.parse(response.body)
+            sorted_extra_articles = extra_articles.sort_by {|a| a.published }.reverse
+            articles = ([new_article] + sorted_extra_articles).map do |a|
+              {
+                title: a.title,
+                url: a.url,
+                summary: a.summary,
+                published: a.published.as_json,
+                updated: a.updated.as_json,
+                content: a.content,
+                authors: a.authors.map {|author| {name: author.name, email: nil }},
+              }
+            end
             expected = JSON.parse(JSON.dump({
               "last_updated": feed.updated_at.as_json,
               "feeds": [{
@@ -381,28 +397,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                 "url": "https://example.com/",
                 "summary": nil,
                 "image_url": nil,
-                "articles": [
-                  {
-                    "title": "new",
-                    "url": "https://example.com/new",
-                    "summary": nil,
-                    "published": new_article.published.as_json,
-                    "updated": nil,
-                    "content": "this is a new article",
-                    "authors": [
-                      {"name": "foo", "email": nil}
-                    ],
-                  },
-                  {
-                    "title": "old",
-                    "url": "https://example.com/old",
-                    "summary": nil,
-                    "published": old_article.published.as_json,
-                    "updated": nil,
-                    "content": "this is an old article",
-                    "authors": [],
-                  }
-                ]
+                "articles": articles
               }]
             }))
             expect(json).to eq(expected)

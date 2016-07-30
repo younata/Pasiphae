@@ -38,7 +38,7 @@ group :development, :test do
   gem 'byebug'
   gem 'sqlite3'
   gem 'rspec-rails'
-  gem 'factory_girl'
+  gem 'factory_girl_rails'
   gem 'pivotal-tracker'
 end
 
