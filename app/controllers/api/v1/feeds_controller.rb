@@ -32,14 +32,14 @@ class Api::V1::FeedsController < Api::V1::ApiController
       date = DateTime.parse(params['date'])
       feeds = @user.feeds.map do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
-        articles = feed.articles.where("published > ? OR updated > ?", date, date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id])
+        articles = feed.articles.where("updated_at > ?", date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         hash[:articles] = articles
         hash
       end
     else
       feeds = @user.feeds.map do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
-        articles = feed.articles.order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id])
+        articles = feed.articles.order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         hash[:articles] = articles
         hash
       end

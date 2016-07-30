@@ -305,7 +305,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         let!(:old_article) do
-          a = Article.new(title: 'old', published: 20.seconds.ago, url: 'https://example.com/old', feed: feed, content: 'this is an old article')
+          a = Article.new(title: 'old', updated_at: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old', feed: feed, content: 'this is an old article')
           a.save
           a
         end
@@ -328,7 +328,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'with a date parameter' do
           before do
-            get :fetch, { date: 10.seconds.ago.as_json }
+            get :fetch, { date: 10.seconds.ago }
           end
 
           it 'returns http 200' do
