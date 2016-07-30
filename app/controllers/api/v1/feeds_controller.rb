@@ -11,7 +11,6 @@ class Api::V1::FeedsController < Api::V1::ApiController
         feed = Feed.create(url: url)
         feed.save
         FeedRefresher.perform(feed)
-        #Resque.enqueue(FeedRefresher, feed)
       end
       unless @user.feeds.exists?(feed.id)
         @user.feeds << feed
@@ -45,15 +44,12 @@ class Api::V1::FeedsController < Api::V1::ApiController
         hash
       end
     end
-    last_updated_article = Article.order(updated: :desc, published: :desc).first
+    last_updated_feed = Feed.order(updated_at: :asc).first
 
-    if last_updated_article.nil?
+    if last_updated_feed.nil?
       last_updated = Time.now
     else
-      last_updated = last_updated_article.updated
-      if last_updated.nil?
-        last_updated = last_updated_article.published
-      end
+      last_updated = last_updated_feed.updated_at
     end
     render json: {last_updated: last_updated, feeds: feeds}
   end

@@ -46,6 +46,7 @@ module FeedHelper
         end
       article.save
     end
+    feed.touch
     feed.save
   end
 end

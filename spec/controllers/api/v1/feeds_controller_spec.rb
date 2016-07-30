@@ -338,7 +338,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           it 'returns feeds and articles published/updated since that date that the user is subscribed to' do
             json = JSON.parse(response.body)
             expected = JSON.parse(JSON.dump({
-              "last_updated": new_article.published.as_json,
+              "last_updated": feed.updated_at.as_json,
               "feeds": [{
                 "title": nil,
                 "url": "https://example.com/",
@@ -375,7 +375,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           it 'returns all feeds and recent articles the user is subscribed to' do
             json = JSON.parse(response.body)
             expected = JSON.parse(JSON.dump({
-              "last_updated": new_article.published.as_json,
+              "last_updated": feed.updated_at.as_json,
               "feeds": [{
                 "title": nil,
                 "url": "https://example.com/",
