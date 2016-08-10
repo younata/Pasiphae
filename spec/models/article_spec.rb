@@ -2,15 +2,11 @@ require 'rails_helper'
 
 RSpec.describe Article, type: :model do
   let!(:feed) do
-    f = Feed.new(title: "title", url: "https://example.com", summary: nil, image_url: nil)
-    f.save
-    f
+    Feed.create(title: "title", url: "https://example.com", summary: nil, image_url: nil)
   end
 
   let!(:article) do
-    a = Article.new(title: "title", url: "https://example.com/url", summary: "", published: DateTime.now, updated: nil, content: "hello world", feed: feed)
-    a.save
-    a
+    Article.create(title: "title", url: "https://example.com/url", summary: "", published: DateTime.now, updated: nil, content: "hello world", feed: feed)
   end
 
   it 'is currently valid' do

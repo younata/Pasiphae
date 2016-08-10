@@ -2,9 +2,7 @@ require 'rails_helper'
 
 RSpec.describe User, type: :model do
   let!(:user) do
-    u = User.new(email: 'user@example.com', password: 'password', password_confirmation: 'password')
-    u.save
-    u
+    User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
   end
 
   it 'creates a device/api token for this user' do
