@@ -1,7 +1,7 @@
 require 'resque'
 
 class Api::V1::FeedsController < Api::V1::ApiController
-  before_filter :restrict_api_access
+  before_action :restrict_api_access
 
   def subscribe
     feeds_list = params['feeds']

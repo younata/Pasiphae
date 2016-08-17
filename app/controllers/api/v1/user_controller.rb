@@ -1,5 +1,5 @@
 class Api::V1::UserController < Api::V1::ApiController
-  before_filter :restrict_api_access, only: [:delete, :add_device_token]
+  before_action :restrict_api_access, only: [:delete, :add_device_token]
 
   def create
     email = params[:email].downcase
@@ -31,14 +31,14 @@ class Api::V1::UserController < Api::V1::ApiController
 
   def delete
     @user.destroy
-    render nothing: true
+    head :ok
   end
 
   def add_device_token
     push_token = params[:token]
     @device.push_token = push_token
     @device.save
-    render nothing: true
+    head :ok
   end
 
 private

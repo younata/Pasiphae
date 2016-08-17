@@ -1,7 +1,7 @@
 class Api::V1::ApiController < ApplicationController
   protect_from_forgery with: :null_session
-  skip_before_filter :verify_authenticity_token
-  before_filter :restrict_access
+  skip_before_action :verify_authenticity_token
+  before_action :restrict_access
 
   private
   def restrict_access

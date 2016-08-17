@@ -34,7 +34,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'and none of the feeds specified exist already' do
           before do
-            post :subscribe, { :feeds => ['https://example.com/1', 'https://example.com/2'] }
+            post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
           end
 
           it 'creates those feeds' do
@@ -75,7 +75,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           end
 
           before do
-            post :subscribe, { :feeds => ['https://example.com/1', 'https://example.com/2'] }
+            post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
           end
 
           it 'creates only the unknown feeds' do
@@ -118,7 +118,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           before do
             user.feeds << feed
             user.save
-            post :subscribe, { :feeds => ['https://example.com/1', 'https://example.com/2'] }
+            post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
           end
 
           it 'creates only the unknown feeds' do
@@ -199,7 +199,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           before do
             user.feeds << feed
             user.save
-            post :unsubscribe, { :feeds => ['https://example.com/2'] }
+            post :unsubscribe, params: { :feeds => ['https://example.com/2'] }
           end
 
           it 'returns http 200' do
@@ -222,7 +222,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           before do
             user.feeds << feed
             user.save
-            post :unsubscribe, { :feeds => ['https://example.com/2'] }
+            post :unsubscribe, params: { :feeds => ['https://example.com/2'] }
           end
 
           it 'returns http 200' do
@@ -252,7 +252,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             user.feeds << feed
             user.feeds << feed2
             user.save
-            post :unsubscribe, { :feeds => ['https://example.com/2'] }
+            post :unsubscribe, params: { :feeds => ['https://example.com/2'] }
           end
 
           it 'unsubscribes the user from that feed' do
@@ -328,7 +328,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'with a date parameter' do
           before do
-            get :fetch, { date: 10.seconds.ago }
+            get :fetch, params: { date: 10.seconds.ago }
           end
 
           it 'returns http 200' do

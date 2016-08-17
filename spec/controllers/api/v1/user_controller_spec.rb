@@ -5,7 +5,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
   describe "PUT #create" do
     it_behaves_like 'an api request' do
       before do
-        put :create, { :email => 'example@example.com', :password => 'example' }
+        put :create, params: { :email => 'example@example.com', :password => 'example' }
       end
     end
 
@@ -16,7 +16,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
       describe 'when a user with that email does not exist' do
         before do
-          put :create, { :email => 'example@example.com', :password => 'example' }
+          put :create, params: { :email => 'example@example.com', :password => 'example' }
         end
 
         it 'returns http 200' do
@@ -43,7 +43,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
         end
 
         before do
-          put :create, { :email => 'example@example.com', :password => 'other' }
+          put :create, params: { :email => 'example@example.com', :password => 'other' }
         end
 
         it 'returns http 400' do
@@ -78,7 +78,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
       describe 'when a user with that email and password exists' do
         before do
-          post :login, { :email => 'example@example.com', :password => 'password' }
+          post :login, params: { :email => 'example@example.com', :password => 'password' }
         end
 
         it 'returns http 200' do
@@ -99,7 +99,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
       describe 'when a user with that email does not exist' do
         before do
-          post :login, { :email => 'user@example.com', :password => 'password' }
+          post :login, params: { :email => 'user@example.com', :password => 'password' }
         end
 
         it 'returns http 404' do
@@ -114,7 +114,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
       describe 'when a user with that email exists, but has a different password hash' do
         before do
-          post :login, { :email => 'example@example.com', :password => 'different_password' }
+          post :login, params: { :email => 'example@example.com', :password => 'different_password' }
         end
 
         it 'returns http 404' do
@@ -156,7 +156,7 @@ RSpec.describe Api::V1::UserController, type: :controller do
 
         before do
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
-          put :add_device_token, { :token => 'foofoobarbar' }
+          put :add_device_token, params: { :token => 'foofoobarbar' }
         end
 
         it "returns http success" do
