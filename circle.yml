@@ -8,8 +8,8 @@ dependencies:
     - sudo dpkg -i cf-cli_amd64.deb
     - cf -v
 database:
-  post:
-    - bin/rails db:migrate RAILS_ENV=test
+  override:
+    - bin/rails db:create db:migrate RAILS_ENV=test
 
 test:
   post:
