@@ -4,7 +4,7 @@ class AddReadArticlesToUser < ActiveRecord::Migration
       t.belongs_to :article, index: true
       t.belongs_to :user, index: true
 
-      t.boolean :read, default: true
+      t.boolean :read, default: false
 
       t.timestamps
     end
