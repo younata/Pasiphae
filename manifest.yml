@@ -6,7 +6,7 @@ applications:
   command: bundle exec rake cf:on_first_instance db:migrate && bundle exec rails s -p $PORT -e production
   buildpack: ruby_buildpack
   services:
-  - pasiphae_db_panda
+  - Pasiphae_DB
   - Pasiphae_Redis
 
 - name: pasiphae-worker
@@ -18,7 +18,7 @@ applications:
   health-check-type: none
   buildpack: ruby_buildpack
   services:
-  - pasiphae_db_panda
+  - Pasiphae_DB
   - Pasiphae_Redis
 
 - name: pasiphae-scheduler
