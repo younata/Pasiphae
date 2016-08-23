@@ -21,7 +21,7 @@ deployment:
   production:
     branch: master
     commands:
-      - cf push -f manifest-web.yml
-      - cf push -f manifest-worker.yml
-      - cf push -f manifest-scheduler.yml
+      - cf push pasiphae
+      - cf push pasiphae-worker
+      - cf push pasiphae-scheduler
       - bundle exec rake ci:deliver
