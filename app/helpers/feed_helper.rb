@@ -4,7 +4,11 @@ require 'feedjira'
 module FeedHelper
   def update_all_feeds
     Feed.find_each do |feed|
-      update_rss_feed(feed)
+      begin
+        update_rss_feed(feed)
+      rescue Exception => e
+        puts e
+      end
     end
   end
 
