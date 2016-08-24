@@ -22,30 +22,31 @@ module FeedHelper
     feed.image_url = channel.image || channel.icon
 
     channel.entries.each do |item|
+      item_url = item.url
+      unless item_url.start_with?('http://', 'https://')
+        feed_uri = URI(feed.url)
+        if item_url.start_with?('/')
+          item_url.slice!(0)
+        end
+        item_url = "#{feed_uri.scheme}://#{feed_uri.host}/#{item_url}"
+      end
+
       article = nil
-      if feed.articles.exists?(url: item.url)
-        article = feed.articles.find_by(url: item.url)
+      if feed.articles.exists?(url: item_url)
+        article = feed.articles.find_by(url: item_url)
         article.title = item.title
         article.summary = item.summary
         article.updated = item.updated
         article.content = item.content
-      elsif Article.exists?(url: item.url)
-        article = Article.find_by(url: item.url)
+      elsif Article.exists?(url: item_url)
+        article = Article.find_by(url: item_url)
         article.title = item.title
         article.summary = item.summary
         article.updated = item.updated
         article.content = item.content
         feed.articles << article
       else
-        url = item.url
-        unless item.url.start_with?('http://', 'https://')
-          feed_uri = URI(feed.url)
-          if url.start_with?('/')
-            url.slice!(0)
-          end
-          url = "#{feed_uri.scheme}://#{feed_uri.host}/#{url}"
-        end
-        article = Article.create(title: item.title, url: url, summary: item.summary, published: item.published || DateTime.now, content: item.content, updated: item.updated, feed: feed)
+        article = Article.create(title: item.title, url: item_url, summary: item.summary, published: item.published || DateTime.now, content: item.content, updated: item.updated, feed: feed)
         if not article.valid?
           puts "Article #{item.url} is invalid!"
           puts article.errors.details.inspect
