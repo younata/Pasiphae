@@ -33,7 +33,7 @@ module FeedHelper
         article = Article.create(title: item.title, url: item.url, summary: item.summary, published: item.published || DateTime.now, content: item.content, updated: item.updated, feed: feed)
         if not article.valid?
           puts "Article #{item.url} is invalid!"
-          puts article.errors
+          puts article.errors.details.inspect
         end
       end
 
