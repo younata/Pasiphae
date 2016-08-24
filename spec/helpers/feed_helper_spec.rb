@@ -46,6 +46,27 @@ RSpec.describe FeedHelper, type: :helper do
       end
     end
 
+    context 'for a feed with articles that have relative urls' do
+      let!(:successful_response) do
+        response_text = IO.read(Rails.root.join("spec", "fixtures", "carthage_releases.xml"))
+        instance_double('RestClient::Response', code: 200, body: response_text)
+      end
+
+      before do
+        allow(RestClient).to receive(:get).with(feed.url).and_return(successful_response)
+        update_rss_feed(feed)
+      end
+
+      it 'fetches the feed at the given url' do
+        expect(RestClient).to have_received(:get).with(feed.url)
+      end
+
+      it 'inserts the article, using the feed host as the base url' do
+        article = Article.first
+        expect(article.url).to eq('https://example.com/Carthage/Carthage/releases/tag/0.17.2')
+      end
+    end
+
     context 'for an atom feed' do
       let!(:article) do
         a = Article.new(title: 'Atom draft-07 snapshot', content: 'this will be replaced', published: DateTime.parse('2003-12-13T08:29:29-04:00'), url: 'http://example.org/2005/04/02/atom', feed: feed)

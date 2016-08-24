@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:https://github.com/Carthage/Carthage/releases</id>
+  <link type="text/html" rel="alternate" href="https://github.com/Carthage/Carthage/releases"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/Carthage/Carthage/releases.atom"/>
+  <title>Release notes from Carthage</title>
+  <updated>2016-06-30T12:26:28Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Repository/25050844/0.17.2</id>
+    <updated>2016-06-30T12:42:31Z</updated>
+    <link rel="alternate" type="text/html" href="/Carthage/Carthage/releases/tag/0.17.2"/>
+    <title>0.17.2: Zipper of Zippers</title>
+    <content type="html">&lt;p&gt;&lt;strong&gt;Improved&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;
+&lt;code&gt;carthage copy-frameworks&lt;/code&gt; now strips headers from the framework (&lt;a href=&quot;https://github.com/Carthage/Carthage/pull/1377&quot; class=&quot;issue-link js-issue-link&quot; data-url=&quot;https://github.com/Carthage/Carthage/issues/1377&quot; data-id=&quot;162925628&quot; data-error-text=&quot;Failed to load issue title&quot; data-permission-text=&quot;Issue title is private&quot;&gt;#1377&lt;/a&gt;). Thanks &lt;a href=&quot;https://github.com/ikesyo&quot; class=&quot;user-mention&quot;&gt;@ikesyo&lt;/a&gt;!&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Fixed&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;
+&lt;code&gt;carthage archive&lt;/code&gt; didn&#39;t respect &lt;code&gt;--project-directory&lt;/code&gt; (&lt;a href=&quot;https://github.com/Carthage/Carthage/pull/1373&quot; class=&quot;issue-link js-issue-link&quot; data-url=&quot;https://github.com/Carthage/Carthage/issues/1373&quot; data-id=&quot;162399078&quot; data-error-text=&quot;Failed to load issue title&quot; data-permission-text=&quot;Issue title is private&quot;&gt;#1373&lt;/a&gt;). Thanks &lt;a href=&quot;https://github.com/hamchapman&quot; class=&quot;user-mention&quot;&gt;@hamchapman&lt;/a&gt;!&lt;/li&gt;
+&lt;li&gt;
+&lt;code&gt;carthage update&lt;/code&gt; would sometimes hang (&lt;a href=&quot;https://github.com/Carthage/Carthage/pull/1376&quot; class=&quot;issue-link js-issue-link&quot; data-url=&quot;https://github.com/Carthage/Carthage/issues/1376&quot; data-id=&quot;162917283&quot; data-error-text=&quot;Failed to load issue title&quot; data-permission-text=&quot;Issue title is private&quot;&gt;#1376&lt;/a&gt;). Thanks &lt;a href=&quot;https://github.com/mdiep&quot; class=&quot;user-mention&quot;&gt;@mdiep&lt;/a&gt;!&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Thank you to &lt;a href=&quot;https://github.com/ikesyo&quot; class=&quot;user-mention&quot;&gt;@ikesyo&lt;/a&gt; and &lt;a href=&quot;https://github.com/mdiep&quot; class=&quot;user-mention&quot;&gt;@mdiep&lt;/a&gt; for reviewing pull requests!&lt;/p&gt;</content>
+    <author>
+      <name>mdiep</name>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars1.githubusercontent.com/u/1302?v=3&amp;s=60"/>
+  </entry>
+</feed>
