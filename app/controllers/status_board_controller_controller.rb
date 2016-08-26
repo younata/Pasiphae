@@ -4,7 +4,7 @@ class StatusBoardControllerController < ApplicationController
   before_action :restrict_access
   def current
     csv_text = CSV.generate do |csv|
-      csv << []
+      csv << ['75%', '25%']
       csv << ['Users', User.count]
       csv << ['Feeds', Feed.count]
       csv << ['Average Feeds/User', avg_feed_user]

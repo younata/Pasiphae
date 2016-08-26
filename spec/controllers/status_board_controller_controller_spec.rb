@@ -9,6 +9,12 @@ RSpec.describe StatusBoardControllerController, type: :controller do
     Feed.create(url: 'https://example.com/feed/2')
   end
 
+  let!(:other_feeds) do
+    (1..10).each do |i|
+      Feed.create(url: "https://example.com/feed/#{i+10}")
+    end
+  end
+
   let!(:feed_1_articles) do
     create_list(:article, 14, feed: feed_1)
   end
@@ -52,9 +58,9 @@ RSpec.describe StatusBoardControllerController, type: :controller do
 
         csv = CSV.parse(response.body)
         expected = [
-          [],
+          ['75%', '25%'],
           ['Users', '2'],
-          ['Feeds', '2'],
+          ['Feeds', '12'],
           ['Average Feeds/User', '1.5'],
           ['Highest Feeds/User', '2'],
           ['Articles', '30'],
