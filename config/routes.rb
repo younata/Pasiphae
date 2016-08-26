@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  get 'status_board_controller/current'
+  get 'status_board_controller/popular'
+  get 'status_board_controller/usage'
+
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       put  'user/create', to: 'user#create'

@@ -17,6 +17,8 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 ENV['PASIPHAE_APPLICATION_TOKEN'] = 'GreatSuccess'
+ENV['PASIPHAE_ADMIN'] = 'test_admin'
+ENV['PASIPHAE_ADMIN_PW'] = 'test_pw'
 require 'factory_girl'
 
 RSpec.configure do |config|

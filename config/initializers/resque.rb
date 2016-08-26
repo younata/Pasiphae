@@ -5,7 +5,7 @@ resque_config = {
   'development' => 'localhost:6379',
   'test' => 'localhost:6379',
 }
-if vcap = ENV['VCAP_SERVICES']
+if vcap = ENV['VCAP_SERVICES'] and rails_env == 'production'
   vcap_json = JSON.parse(vcap)
   credentials = vcap_json['rediscloud'][0]['credentials']
   args = {
