@@ -299,25 +299,19 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         let!(:feed) do
-          f = Feed.new(url: 'https://example.com/')
-          f.save
-          f
+          Feed.create(url: 'https://example.com/')
         end
 
         let!(:old_article) do
-          a = Article.new(title: 'old', updated_at: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old', feed: feed, content: 'this is an old article')
-          a.save
-          a
+          Article.create(title: 'old', updated_at: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old', feed: feed, content: 'this is an old article')
         end
 
         let!(:new_article) do
-          a = Article.new(title: 'new', published: 0.seconds.ago, url: 'https://example.com/new', feed: feed, content: 'this is a new article')
-          a.save
-          a
+          Article.create(title: 'new', published: 0.seconds.ago, url: 'https://example.com/new', feed: feed, content: 'this is a new article')
         end
 
         let!(:author) do
-          a = Author.new(name: "foo")
+          Author.new(name: "foo")
         end
 
         before do
@@ -344,20 +338,122 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                 "url": "https://example.com/",
                 "summary": nil,
                 "image_url": nil,
-                "articles": [
-                  {
+                "articles": [{
                     "title": "new",
                     "url": "https://example.com/new",
                     "summary": nil,
                     "published": new_article.published.as_json,
                     "updated": nil,
                     "content": "this is a new article",
-                    "authors": [
-                      {"name": "foo", "email": nil}
-                    ],
-                  }
-                ]
+                    "authors": [{"name": "foo", "email": nil}],
+                }]
               }]
+            }))
+            expect(json).to eq(expected)
+          end
+        end
+
+        describe 'with a feeds parameter (date parameter for a bunch of feeds)' do
+          let!(:feed_2) do
+            Feed.create(url: 'https://example.com/feed/2')
+          end
+
+          let!(:feed_3) do
+            Feed.create(url: 'https://example.com/feed/3')
+          end
+
+          let!(:old_article_2) do
+            Article.create(title: 'old2', updated_at: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_2', feed: feed_2, content: 'this is an old article')
+          end
+
+          let!(:old_article_3) do
+            Article.create(title: 'old3', updated_at: 8.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_3', feed: feed_3, content: 'this is an old article')
+          end
+
+          let!(:new_article_2) do
+            Article.create(title: 'new2', published: 0.seconds.ago, url: 'https://example.com/new_2', feed: feed_2, content: 'this is a new article')
+          end
+
+          let!(:new_article_3) do
+            Article.create(title: 'new3', published: 0.seconds.ago, url: 'https://example.com/new_3', feed: feed_3, content: 'this is a new article')
+          end
+
+          let!(:extra_articles) do
+            create_list(:article, 19, feed: feed_3)
+          end
+
+          before do
+            user.feeds << [feed_2, feed_3]
+            get :fetch, params: {
+              feeds: {
+                'https://example.com/': 10.seconds.ago,
+                'https://example.com/feed/2': 5.seconds.ago,
+              }
+            }
+          end
+
+          it 'returns http 200' do
+            expect(response).to have_http_status(:ok)
+          end
+
+          it 'returns feeds and articles published/updated since that date for the given feed + the most recent 20 articles for the other feeds that the user is subscribed to' do
+            json = JSON.parse(response.body)
+
+            sorted_extra_articles = extra_articles.sort_by {|a| a.published }.reverse
+            feed_3_articles = ([new_article_3] + sorted_extra_articles).map do |a|
+              {
+                title: a.title,
+                url: a.url,
+                summary: a.summary,
+                published: a.published.as_json,
+                updated: a.updated.as_json,
+                content: a.content,
+                authors: a.authors.map {|author| {name: author.name, email: nil }},
+              }
+            end
+            expected = JSON.parse(JSON.dump({
+              "feeds": [
+                {
+                  "last_updated": feed.updated_at.as_json,
+                  "title": nil,
+                  "url": "https://example.com/",
+                  "summary": nil,
+                  "image_url": nil,
+                  "articles": [{
+                      "title": "new",
+                      "url": "https://example.com/new",
+                      "summary": nil,
+                      "published": new_article.published.as_json,
+                      "updated": nil,
+                      "content": "this is a new article",
+                      "authors": [{"name": "foo", "email": nil}],
+                  }]
+                },
+                {
+                  "last_updated": feed_2.updated_at.as_json,
+                  "title": nil,
+                  "url": "https://example.com/feed/2",
+                  "summary": nil,
+                  "image_url": nil,
+                  "articles": [{
+                      "title": "new2",
+                      "url": "https://example.com/new_2",
+                      "summary": nil,
+                      "published": new_article_2.published.as_json,
+                      "updated": nil,
+                      "content": "this is a new article",
+                      "authors": [],
+                  }]
+                },
+                {
+                  "last_updated": feed_3.updated_at.as_json,
+                  "title": nil,
+                  "url": "https://example.com/feed/3",
+                  "summary": nil,
+                  "image_url": nil,
+                  "articles": feed_3_articles
+                }
+              ]
             }))
             expect(json).to eq(expected)
           end
@@ -376,7 +472,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             expect(response).to have_http_status(:ok)
           end
 
-          it 'returns all feeds and the 20 most recent articles the user is subscribed to' do
+          it 'returns all feeds and the 20 most recent articles for those feeds that the user is subscribed to' do
             json = JSON.parse(response.body)
             sorted_extra_articles = extra_articles.sort_by {|a| a.published }.reverse
             articles = ([new_article] + sorted_extra_articles).map do |a|

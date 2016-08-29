@@ -27,31 +27,61 @@ class Api::V1::FeedsController < Api::V1::ApiController
   end
 
   def fetch
-    feeds = nil
+    feeds = []
+    feeds_specified = []
+    use_old_lastupdated_behavior = true
+    if params['feeds']
+      use_old_lastupdated_behavior = false
+
+      params['feeds'].each do |key, value|
+        date = DateTime.parse(value)
+        if date
+          feed = @user.feeds.find_by(url: key)
+          hash = feed.as_json(except: [:id, :created_at, :updated_at])
+          articles = feed.articles.where("updated_at > ?", date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+          hash[:articles] = articles
+          hash[:last_updated] = feed.updated_at
+          feeds << hash
+          feeds_specified << feed.url
+        end
+      end
+    end
     if params['date'] and DateTime.parse(params['date'])
       date = DateTime.parse(params['date'])
-      feeds = @user.feeds.map do |feed|
+      feeds += @user.feeds.select { |f| !feeds_specified.include?(f.url) }.map do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
         articles = feed.articles.where("updated_at > ?", date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         hash[:articles] = articles
+        unless use_old_lastupdated_behavior
+          hash[:last_updated] = feed.updated_at
+        end
         hash
       end
     else
-      feeds = @user.feeds.map do |feed|
+      feeds += @user.feeds.select { |f| !feeds_specified.include?(f.url) }.map do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
         articles = feed.articles.order(published: :desc).limit(20).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         hash[:articles] = articles
+        unless use_old_lastupdated_behavior
+          hash[:last_updated] = feed.updated_at
+        end
         hash
       end
     end
-    last_updated_feed = Feed.order(updated_at: :asc).first
 
-    if last_updated_feed.nil?
-      last_updated = Time.now
-    else
-      last_updated = last_updated_feed.updated_at
+    json_to_render = {feeds: feeds}
+
+    if use_old_lastupdated_behavior
+      last_updated_feed = Feed.order(updated_at: :asc).first
+
+      if last_updated_feed.nil?
+        last_updated = Time.now
+      else
+        last_updated = last_updated_feed.updated_at
+      end
+      json_to_render[:last_updated] = last_updated
     end
-    render json: {last_updated: last_updated, feeds: feeds}
+    render json: json_to_render
   end
 
 private
