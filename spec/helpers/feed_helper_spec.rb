@@ -1,18 +1,64 @@
 require 'rails_helper'
 
 RSpec.describe FeedHelper, type: :helper do
+  describe 'is_feed?' do
+    describe 'and the feed is not saved to the database' do
+      describe 'and the data at the url does not exist' do
+        let!(:failure_response) do
+          response_text = "no"
+          instance_double('RestClient::Response', code: 404, body: response_text)
+        end
+
+        it 'returns false' do
+          allow(RestClient).to receive(:get).with('https://example.com/').and_return(failure_response)
+          expect(is_feed?('https://example.com/')).to eq(false)
+        end
+      end
+
+      describe 'and the data at the url is not a feed' do
+        let!(:failure_response) do
+          response_text = "<html><body>hi</body></html>"
+          instance_double('RestClient::Response', code: 200, body: response_text)
+        end
+
+        it 'returns false' do
+          allow(RestClient).to receive(:get).with('https://example.com/').and_return(failure_response)
+          expect(is_feed?('https://example.com/')).to eq(false)
+        end
+      end
+
+      describe 'and the data at the url is a feed' do
+        let!(:successful_response) do
+          response_text = IO.read(Rails.root.join("spec", "fixtures", "rss2.0.xml"))
+          instance_double('RestClient::Response', code: 200, body: response_text)
+        end
+
+        it 'returns true' do
+          allow(RestClient).to receive(:get).with('https://example.com/').and_return(successful_response)
+          expect(is_feed?('https://example.com/')).to eq(true)
+        end
+      end
+    end
+
+    describe 'and the feed exists in the database' do
+      let!(:feed) do
+        Feed.create(title: nil, url: "https://example.com", summary: nil, image_url: nil)
+      end
+
+      it 'returns true' do
+        expect(is_feed?(feed.url + '/')).to eq(true)
+      end
+    end
+  end
+
   describe 'refresh feed' do
     let!(:feed) do
-      f = Feed.new(title: nil, url: "https://example.com", summary: nil, image_url: nil)
-      f.save
-      f
+      Feed.create(title: nil, url: "https://example.com", summary: nil, image_url: nil)
     end
 
     context 'for an rss 2.0 feed' do
       let!(:article) do
-        a = Article.new(title: 'Issue #17: Security', summary: 'this will be replaced', published: DateTime.parse('Fri, 10 Oct 2014 13:00:00 +0000'), url: 'http://www.objc.io/issue-17', feed: feed)
-        a.save
-        a
+        Article.create(title: 'Issue #17: Security', summary: 'this will be replaced', published: DateTime.parse('Fri, 10 Oct 2014 13:00:00 +0000'), url: 'http://www.objc.io/issue-17', feed: feed)
       end
 
       let!(:successful_response) do

@@ -13,6 +13,7 @@ Rails.application.routes.draw do
       post 'feeds/subscribe', to: 'feeds#subscribe'
       post 'feeds/unsubscribe', to: 'feeds#unsubscribe'
       get 'feeds/fetch', to: 'feeds#fetch'
+      get 'feeds/check', to: 'feeds#check'
     end
   end
 

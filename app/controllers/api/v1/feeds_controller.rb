@@ -2,14 +2,23 @@ require 'resque'
 
 class Api::V1::FeedsController < Api::V1::ApiController
   before_action :restrict_api_access
+  before_action :restrict_api_access, only: [:subscribe, :unsubscribe, :fetch]
+
+  def check
+    url = params['url']
+    unless url.nil?
+      render json: {url => FeedHelper::is_feed?(url)}
+    else
+      head(204)
+    end
+  end
 
   def subscribe
     feeds_list = params['feeds']
-    feeds_list.each do |url|
+    feeds_list.select {|url| FeedHelper::is_feed?(url)}.each do |url|
       feed = Feed.find_by(url: url)
       unless feed
         feed = Feed.create(url: url)
-        feed.save
         FeedRefresher.perform(feed)
       end
       unless @user.feeds.exists?(feed.id)

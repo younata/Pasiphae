@@ -2,6 +2,15 @@ require 'rest-client'
 require 'feedjira'
 
 module FeedHelper
+  def is_feed?(url)
+    if Feed.exists?(url: [url + '/', url.chomp('/')])
+      return true
+    else
+      response = RestClient.get url
+      return !Feedjira::Feed.determine_feed_parser_for_xml(response.body).nil?
+    end
+  end
+
   def update_all_feeds
     Feed.find_each do |feed|
       begin

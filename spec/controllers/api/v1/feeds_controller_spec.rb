@@ -1,7 +1,70 @@
 require 'rails_helper'
 require 'api_helper'
+require 'feed_helper'
+include FeedHelper
 
 RSpec.describe Api::V1::FeedsController, type: :controller do
+  describe "GET #check" do
+    it_behaves_like 'an api request' do
+      before do
+        get :check
+      end
+    end
+
+    describe 'with an application token' do
+      before do
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
+      end
+
+      describe 'without a url to check' do
+        before do
+          allow(FeedHelper).to receive(:is_feed?)
+          get :check
+        end
+
+        it 'returns http 204' do
+          expect(response).to have_http_status(204)
+        end
+
+        it 'does no actual checking right now' do
+          expect(FeedHelper).to_not have_received(:is_feed?)
+        end
+      end
+
+      describe 'with a url to check (that is invalid)' do
+        before do
+          allow(FeedHelper).to receive(:is_feed?).with('https://example.com').and_return(false)
+          get :check, params: {url: 'https://example.com'}
+        end
+
+        it 'returns http 200' do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'tells the caller that the url is whatever FeedHelper tells it' do
+          expect(JSON.parse(response.body, symbolize_names: true)).to eq({'https://example.com': false})
+          expect(FeedHelper).to have_received(:is_feed?).with('https://example.com')
+        end
+      end
+
+      describe 'with a url to check (that is valid)' do
+        before do
+          allow(FeedHelper).to receive(:is_feed?).with('https://example.com').and_return(true)
+          get :check, params: {url: 'https://example.com'}
+        end
+
+        it 'returns http 200' do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'tells the caller that the url is whatever FeedHelper tells it' do
+          expect(JSON.parse(response.body, symbolize_names: true)).to eq({'https://example.com': true})
+          expect(FeedHelper).to have_received(:is_feed?).with('https://example.com')
+        end
+      end
+    end
+  end
+
   describe "POST #subscribe" do
     it_behaves_like 'an api request' do
       before do
@@ -29,6 +92,8 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         before do
           allow(FeedRefresher).to receive(:perform)
+          allow(FeedHelper).to receive(:is_feed?).with('https://example.com/1').and_return(true)
+          allow(FeedHelper).to receive(:is_feed?).with('https://example.com/2').and_return(false)
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
         end
 
@@ -37,10 +102,15 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
           end
 
-          it 'creates those feeds' do
-            expect(Feed.all.count).to eq(2)
+          it 'checks to make sure the feeds are actually feeds' do
+            expect(FeedHelper).to have_received(:is_feed?).with('https://example.com/1')
+            expect(FeedHelper).to have_received(:is_feed?).with('https://example.com/2')
+          end
+
+          it 'creates those feeds that are actually feeds' do
+            expect(Feed.all.count).to eq(1)
             expect(Feed.exists?(url: 'https://example.com/1')).to be_truthy
-            expect(Feed.exists?(url: 'https://example.com/2')).to be_truthy
+            expect(Feed.exists?(url: 'https://example.com/2')).to be_falsy
           end
 
           it 'enqueues a resque task to update each feed' do
@@ -49,12 +119,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           end
 
           it 'subscribes the user to those feeds' do
-            expect(user.feeds.count).to eq(2)
+            expect(user.feeds.count).to eq(1)
             feed1 = Feed.find_by(url: 'https://example.com/1')
-            feed2 = Feed.find_by(url: 'https://example.com/2')
 
             expect(user.feeds.exists?(feed1.id)).to be_truthy
-            expect(user.feeds.exists?(feed2.id)).to be_truthy
           end
 
           it 'returns http 200' do
@@ -63,19 +131,24 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
           it 'returns the list of feeds the user is subscribed to' do
             json = JSON.parse(response.body)
-            expect(json).to eq(['https://example.com/1', 'https://example.com/2'])
+            expect(json).to eq(['https://example.com/1'])
           end
         end
 
         describe 'and at least one of the feeds specified exists already' do
           let!(:feed) do
-            f = Feed.new(url: 'https://example.com/1')
-            f.save
-            f
+            Feed.create(url: 'https://example.com/1')
           end
 
           before do
+            allow(FeedHelper).to receive(:is_feed?).with('https://example.com/1').and_return(true)
+            allow(FeedHelper).to receive(:is_feed?).with('https://example.com/2').and_return(true)
             post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
+          end
+
+          it 'checks that the urls are actually feeds' do
+            expect(FeedHelper).to have_received(:is_feed?).with('https://example.com/1')
+            expect(FeedHelper).to have_received(:is_feed?).with('https://example.com/2')
           end
 
           it 'creates only the unknown feeds' do
@@ -110,12 +183,11 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'and the user is already subscribed to one of those feeds' do
           let!(:feed) do
-            f = Feed.new(url: 'https://example.com/1')
-            f.save
-            f
+            Feed.create(url: 'https://example.com/1')
           end
 
           before do
+            allow(FeedHelper).to receive(:is_feed?).with('https://example.com/2').and_return(true)
             user.feeds << feed
             user.save
             post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
