@@ -65,9 +65,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
         articles = feed.articles.where("updated_at > ?", date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         hash[:articles] = articles
-        unless use_old_lastupdated_behavior
-          hash[:last_updated] = feed.updated_at
-        end
+        hash[:last_updated] = feed.updated_at
         hash
       end
     else
@@ -75,9 +73,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
         articles = feed.articles.order(published: :desc).limit(20).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         hash[:articles] = articles
-        unless use_old_lastupdated_behavior
-          hash[:last_updated] = feed.updated_at
-        end
+        hash[:last_updated] = feed.updated_at
         hash
       end
     end

@@ -408,6 +408,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               "feeds": [{
                 "title": nil,
                 "url": "https://example.com/",
+                "last_updated": feed.updated_at.as_json,
                 "summary": nil,
                 "image_url": nil,
                 "articles": [{
@@ -563,6 +564,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               "feeds": [{
                 "title": nil,
                 "url": "https://example.com/",
+                "last_updated": feed.updated_at.as_json,
                 "summary": nil,
                 "image_url": nil,
                 "articles": articles
