@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -23,33 +22,29 @@ ActiveRecord::Schema.define(version: 20160810180359) do
     t.integer  "feed_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.index ["feed_id"], name: "index_articles_on_feed_id"
   end
-
-  add_index "articles", ["feed_id"], name: "index_articles_on_feed_id"
 
   create_table "articles_authors", id: false, force: :cascade do |t|
     t.integer "article_id"
     t.integer "author_id"
+    t.index ["article_id"], name: "index_articles_authors_on_article_id"
+    t.index ["author_id"], name: "index_articles_authors_on_author_id"
   end
-
-  add_index "articles_authors", ["article_id"], name: "index_articles_authors_on_article_id"
-  add_index "articles_authors", ["author_id"], name: "index_articles_authors_on_author_id"
 
   create_table "authors", force: :cascade do |t|
     t.string  "name"
     t.string  "email"
     t.integer "article_id"
+    t.index ["article_id"], name: "index_authors_on_article_id"
   end
-
-  add_index "authors", ["article_id"], name: "index_authors_on_article_id"
 
   create_table "devices", force: :cascade do |t|
     t.string  "push_token"
     t.string  "api_token"
     t.integer "user_id"
+    t.index ["user_id"], name: "index_devices_on_user_id"
   end
-
-  add_index "devices", ["user_id"], name: "index_devices_on_user_id"
 
   create_table "feeds", force: :cascade do |t|
     t.string   "title"
@@ -63,10 +58,9 @@ ActiveRecord::Schema.define(version: 20160810180359) do
   create_table "feeds_users", id: false, force: :cascade do |t|
     t.integer "feed_id"
     t.integer "user_id"
+    t.index ["feed_id"], name: "index_feeds_users_on_feed_id"
+    t.index ["user_id"], name: "index_feeds_users_on_user_id"
   end
-
-  add_index "feeds_users", ["feed_id"], name: "index_feeds_users_on_feed_id"
-  add_index "feeds_users", ["user_id"], name: "index_feeds_users_on_user_id"
 
   create_table "user_articles", force: :cascade do |t|
     t.integer  "article_id"
@@ -74,18 +68,16 @@ ActiveRecord::Schema.define(version: 20160810180359) do
     t.boolean  "read",       default: true
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.index ["article_id"], name: "index_user_articles_on_article_id"
+    t.index ["user_id"], name: "index_user_articles_on_user_id"
   end
-
-  add_index "user_articles", ["article_id"], name: "index_user_articles_on_article_id"
-  add_index "user_articles", ["user_id"], name: "index_user_articles_on_user_id"
 
   create_table "users", force: :cascade do |t|
     t.string   "email"
     t.string   "password_digest"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
-
-  add_index "users", ["email"], name: "index_users_on_email", unique: true
 
 end
