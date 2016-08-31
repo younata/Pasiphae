@@ -457,10 +457,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           before do
             user.feeds << [feed_2, feed_3]
             get :fetch, params: {
-              feeds: {
+              feeds: JSON.dump({
                 'https://example.com/': 10.seconds.ago,
                 'https://example.com/feed/2': 5.seconds.ago,
-              }
+              })
             }
           end
 

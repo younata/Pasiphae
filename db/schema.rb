@@ -65,7 +65,7 @@ ActiveRecord::Schema.define(version: 20160810180359) do
   create_table "user_articles", force: :cascade do |t|
     t.integer  "article_id"
     t.integer  "user_id"
-    t.boolean  "read",       default: true
+    t.boolean  "read",       default: false
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["article_id"], name: "index_user_articles_on_article_id"

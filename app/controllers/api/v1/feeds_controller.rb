@@ -1,4 +1,6 @@
 require 'resque'
+require 'feed_helper'
+include FeedHelper
 
 class Api::V1::FeedsController < Api::V1::ApiController
   before_action :restrict_api_access
@@ -42,16 +44,18 @@ class Api::V1::FeedsController < Api::V1::ApiController
     if params['feeds']
       use_old_lastupdated_behavior = false
 
-      params['feeds'].each do |key, value|
+      JSON.parse(params['feeds']).each do |key, value|
         date = DateTime.parse(value)
         if date
           feed = @user.feeds.find_by(url: key)
-          hash = feed.as_json(except: [:id, :created_at, :updated_at])
-          articles = feed.articles.where("updated_at > ?", date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
-          hash[:articles] = articles
-          hash[:last_updated] = feed.updated_at
-          feeds << hash
-          feeds_specified << feed.url
+          unless feed.nil?
+            hash = feed.as_json(except: [:id, :created_at, :updated_at])
+            articles = feed.articles.where("updated_at > ?", date).order(published: :desc).as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+            hash[:articles] = articles
+            hash[:last_updated] = feed.updated_at
+            feeds << hash
+            feeds_specified << feed.url
+          end
         end
       end
     end
