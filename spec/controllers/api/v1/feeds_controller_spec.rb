@@ -375,7 +375,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         let!(:old_article) do
-          Article.create(title: 'old', updated_at: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old', feed: feed, content: 'this is an old article')
+          Article.create(title: 'old', updated: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old', feed: feed, content: 'this is an old article')
         end
 
         let!(:new_article) do
@@ -408,7 +408,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               "feeds": [{
                 "title": nil,
                 "url": "https://example.com/",
-                "last_updated": feed.updated_at.as_json,
+                "last_updated": new_article.published.as_json,
                 "summary": nil,
                 "image_url": nil,
                 "articles": [{
@@ -436,11 +436,11 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           end
 
           let!(:old_article_2) do
-            Article.create(title: 'old2', updated_at: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_2', feed: feed_2, content: 'this is an old article')
+            Article.create(title: 'old2', updated: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_2', feed: feed_2, content: 'this is an old article')
           end
 
           let!(:old_article_3) do
-            Article.create(title: 'old3', updated_at: 8.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_3', feed: feed_3, content: 'this is an old article')
+            Article.create(title: 'old3', updated: 8.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_3', feed: feed_3, content: 'this is an old article')
           end
 
           let!(:new_article_2) do
@@ -448,7 +448,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           end
 
           let!(:new_article_3) do
-            Article.create(title: 'new3', published: 0.seconds.ago, url: 'https://example.com/new_3', feed: feed_3, content: 'this is a new article')
+            Article.create(title: 'new3', published: 0.seconds.ago, updated: 0.seconds.ago, url: 'https://example.com/new_3', feed: feed_3, content: 'this is a new article')
           end
 
           let!(:extra_articles) do
@@ -487,7 +487,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             expected = JSON.parse(JSON.dump({
               "feeds": [
                 {
-                  "last_updated": feed.updated_at.as_json,
+                  "last_updated": new_article.published.as_json,
                   "title": nil,
                   "url": "https://example.com/",
                   "summary": nil,
@@ -503,7 +503,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   }]
                 },
                 {
-                  "last_updated": feed_2.updated_at.as_json,
+                  "last_updated": new_article_2.published.as_json,
                   "title": nil,
                   "url": "https://example.com/feed/2",
                   "summary": nil,
@@ -519,7 +519,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   }]
                 },
                 {
-                  "last_updated": feed_3.updated_at.as_json,
+                  "last_updated": new_article_3.published.as_json,
                   "title": nil,
                   "url": "https://example.com/feed/3",
                   "summary": nil,
@@ -528,6 +528,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                 }
               ]
             }))
+            
             expect(json).to eq(expected)
           end
         end
@@ -564,7 +565,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               "feeds": [{
                 "title": nil,
                 "url": "https://example.com/",
-                "last_updated": feed.updated_at.as_json,
+                "last_updated": new_article.published.as_json,
                 "summary": nil,
                 "image_url": nil,
                 "articles": articles
