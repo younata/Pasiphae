@@ -53,7 +53,11 @@ class Api::V1::FeedsController < Api::V1::ApiController
             articles = feed.articles.where("updated > ? OR published > ?", date, date).order(published: :desc)
             hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
             article = articles.first
-            hash[:last_updated] = article.published
+            if article.nil?
+              hash[:last_updated] = feed.updated_at
+            else
+              hash[:last_updated] = article.published
+            end
             feeds << hash
             feeds_specified << feed.url
           end
@@ -67,7 +71,11 @@ class Api::V1::FeedsController < Api::V1::ApiController
         articles = feed.articles.where("updated > ? OR published > ?", date, date).order(published: :desc)
         hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         article = articles.first
-        hash[:last_updated] = article.published
+        if article.nil?
+          hash[:last_updated] = feed.updated_at
+        else
+          hash[:last_updated] = article.published
+        end
         hash
       end
     else
@@ -76,7 +84,11 @@ class Api::V1::FeedsController < Api::V1::ApiController
         articles = feed.articles.order(published: :desc).limit(20)
         hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
         article = articles.first
-        hash[:last_updated] = article.published
+        if article.nil?
+          hash[:last_updated] = feed.updated_at
+        else
+          hash[:last_updated] = article.published
+        end
         hash
       end
     end
