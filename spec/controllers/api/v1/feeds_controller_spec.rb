@@ -345,10 +345,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
     end
   end
 
-  describe "GET #fetch" do
+  describe "POST #fetch" do
     it_behaves_like 'an api request' do
       before do
-        get :fetch
+        post :fetch
       end
     end
 
@@ -359,7 +359,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
       it_behaves_like 'an api requiring a user' do
         before do
-          get :fetch
+          post :fetch
         end
       end
 
@@ -394,7 +394,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'with a date parameter' do
           before do
-            get :fetch, params: { date: 10.seconds.ago }
+            post :fetch, params: { date: 10.seconds.ago }
           end
 
           it 'returns http 200' do
@@ -457,7 +457,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
           before do
             user.feeds << [feed_2, feed_3]
-            get :fetch, params: {
+            post :fetch, params: {
               feeds: JSON.dump({
                 'https://example.com/': 10.seconds.ago,
                 'https://example.com/feed/2': 5.seconds.ago,
@@ -539,7 +539,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           end
 
           before do
-            get :fetch
+            post :fetch
           end
 
           it 'returns http 200' do
