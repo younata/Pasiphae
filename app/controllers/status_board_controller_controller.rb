@@ -2,6 +2,7 @@ require 'csv'
 
 class StatusBoardControllerController < ApplicationController
   before_action :restrict_access
+
   def current
     csv_text = CSV.generate do |csv|
       csv << ['75%', '25%']
