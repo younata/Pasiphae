@@ -2,6 +2,19 @@ require 'rails_helper'
 
 RSpec.describe FeedHelper, type: :helper do
   describe 'is_feed?' do
+    describe 'and the feed url is not an http or https url' do
+      it 'does not try to load the url' do
+        allow(RestClient).to receive(:get)
+
+        is_feed?('file:///etc/passwd')
+
+        expect(RestClient).to_not have_received(:get)
+      end
+
+      it 'returns false without doing any further analysis' do
+        expect(is_feed?('file:///etc/passwd')).to eq(false)
+      end
+    end
     describe 'and the feed is not saved to the database' do
       describe 'and the data at the url does not exist' do
         let!(:failure_response) do

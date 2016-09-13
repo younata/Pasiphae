@@ -97,6 +97,32 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
         end
 
+        describe 'trying to subscribe to a not-http/https url' do
+          before do
+              allow(FeedHelper).to receive(:is_feed?).with('file:///etc/passwd').and_return(false)
+              allow(FeedHelper).to receive(:is_feed?).with('mailto://example.com').and_return(false)
+            post :subscribe, params: { :feeds => ['file:///etc/passwd', 'mailto://example.com'] }
+          end
+
+          it 'checks to make sure the feeds are actually feeds' do
+            expect(FeedHelper).to have_received(:is_feed?).with('file:///etc/passwd')
+            expect(FeedHelper).to have_received(:is_feed?).with('mailto://example.com')
+          end
+
+          it 'does not make any new feeds' do
+            expect(Feed.all.count).to eq(0)
+          end
+
+          it 'returns http 200' do
+            expect(response).to have_http_status(:ok)
+          end
+
+          it 'returns the list of feeds the user is subscribed to' do
+            json = JSON.parse(response.body)
+            expect(json).to eq([])
+          end
+        end
+
         describe 'and none of the feeds specified exist already' do
           before do
             post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }

@@ -1,8 +1,13 @@
 require 'rest-client'
 require 'feedjira'
+require 'uri'
 
 module FeedHelper
   def is_feed?(url)
+    uri = URI(url)
+    unless ['http', 'https'].include? uri.scheme
+      return false
+    end
     if Feed.exists?(url: [url + '/', url.chomp('/')])
       return true
     else
