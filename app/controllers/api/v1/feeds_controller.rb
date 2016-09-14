@@ -4,7 +4,7 @@ include FeedHelper
 
 class Api::V1::FeedsController < Api::V1::ApiController
   before_action :restrict_api_access
-  before_action :restrict_api_access, only: [:subscribe, :unsubscribe, :fetch]
+  before_action :restrict_api_access, only: [:subscribe, :unsubscribe, :fetch, :feeds]
 
   def check
     url = params['url']
@@ -34,6 +34,10 @@ class Api::V1::FeedsController < Api::V1::ApiController
     feeds_list = params['feeds']
     feeds_to_delete = feeds_list.map { |url| @user.feeds.find_by(url: url) }.compact
     @user.feeds.delete(feeds_to_delete)
+    render json: @user.feeds.map {|f| f.url}
+  end
+
+  def feeds
     render json: @user.feeds.map {|f| f.url}
   end
 

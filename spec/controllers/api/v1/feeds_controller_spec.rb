@@ -371,6 +371,53 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
     end
   end
 
+  describe 'get #feeds' do
+    it_behaves_like 'an api request' do
+      before do
+        get :feeds
+      end
+    end
+
+    describe 'with an application token' do
+      before do
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
+      end
+
+      it_behaves_like 'an api requiring a user' do
+        before do
+          get :feeds
+        end
+      end
+
+      describe 'with an api token' do
+        let!(:user) do
+          User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
+        end
+
+        let!(:feed) do
+          Feed.create(url: 'https://example.com/1')
+        end
+
+        before do
+          user.feeds << feed
+          user.save
+          request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
+
+          get :feeds
+        end
+
+        it 'returns http 200' do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'returns the list of feeds the user is subscribed to' do
+          json = JSON.parse(response.body)
+          expect(json).to eq(['https://example.com/1'])
+        end
+      end
+    end
+  end
+
   describe "POST #fetch" do
     it_behaves_like 'an api request' do
       before do
