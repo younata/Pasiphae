@@ -31,6 +31,8 @@ gem 'redis-rails'
 gem 'rest-client'
 gem 'feedjira', git: 'https://github.com/feedjira/feedjira', branch: 'master'
 
+gem 'sentry-raven'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
