@@ -50,13 +50,17 @@ module FeedHelper
         article = feed.articles.find_by(url: item_url)
         article.title = item.title
         article.summary = item.summary
-        article.updated = item.updated
+        if item.methods.include?(:updated)
+          article.updated = item.updated
+        end
         article.content = item.content
       elsif Article.exists?(url: item_url)
         article = Article.find_by(url: item_url)
         article.title = item.title
         article.summary = item.summary
-        article.updated = item.updated
+        if item.methods.include?(:updated)
+          article.updated = item.updated
+        end
         article.content = item.content
         feed.articles << article
       else
