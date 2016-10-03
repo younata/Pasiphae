@@ -508,6 +508,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             Feed.create(url: 'https://example.com/feed/3')
           end
 
+          let!(:feed_4) do
+            Feed.create(url: 'https://example.com/feed/4')
+          end
+
           let!(:old_article_2) do
             Article.create(title: 'old2', updated: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_2', feed: feed_2, content: 'this is an old article')
           end
@@ -524,16 +528,22 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             Article.create(title: 'new3', published: 0.seconds.ago, updated: 0.seconds.ago, url: 'https://example.com/new_3', feed: feed_3, content: 'this is a new article')
           end
 
+
+          let!(:old_article_4) do
+            Article.create(title: 'old4', updated: 20.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_4', feed: feed_4, content: 'this is an old article')
+          end
+
           let!(:extra_articles) do
             create_list(:article, 19, feed: feed_3)
           end
 
           before do
-            user.feeds << [feed_2, feed_3]
+            user.feeds << [feed_2, feed_3, feed_4]
             post :fetch, params: {
               feeds: JSON.dump({
                 'https://example.com/': 10.seconds.ago,
                 'https://example.com/feed/2': 5.seconds.ago,
+                'https://example.com/feed/4': 5.seconds.ago,
               })
             }
           end
@@ -542,7 +552,12 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             expect(response).to have_http_status(:ok)
           end
 
-          it 'returns feeds and articles published/updated since that date for the given feed + the most recent 20 articles for the other feeds that the user is subscribed to' do
+          it 'returns 3 feeds' do
+            json = JSON.parse(response.body)
+            expect(json['feeds'].length).to eq(3)
+          end
+
+          it 'returns feeds and articles published/updated since that date for the given feed + the most recent 20 articles for the other feeds that the user is subscribed to ignoring any feeds not recently updated' do
             json = JSON.parse(response.body)
 
             sorted_extra_articles = extra_articles.sort_by {|a| a.published }.reverse

@@ -55,45 +55,43 @@ class Api::V1::FeedsController < Api::V1::ApiController
           unless feed.nil?
             hash = feed.as_json(except: [:id, :created_at, :updated_at])
             articles = feed.articles.where("updated > ? OR published > ?", date, date).order(published: :desc)
-            hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
-            article = articles.first
-            if article.nil?
-              hash[:last_updated] = feed.updated_at
-            else
-              hash[:last_updated] = article.published
-            end
-            feeds << hash
             feeds_specified << feed.url
+            unless articles.empty?
+              hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+              article = articles.first
+              hash[:last_updated] = article.published
+              feeds << hash
+            end
           end
         end
       end
     end
     if params['date'] and DateTime.parse(params['date'])
       date = DateTime.parse(params['date'])
-      feeds += @user.feeds.select { |f| !feeds_specified.include?(f.url) }.map do |feed|
+      @user.feeds.select { |f| !feeds_specified.include?(f.url) }.each do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
         articles = feed.articles.where("updated > ? OR published > ?", date, date).order(published: :desc)
-        hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
-        article = articles.first
-        if article.nil?
-          hash[:last_updated] = feed.updated_at
-        else
+        unless articles.empty? 
+          hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+          article = articles.first
           hash[:last_updated] = article.published
+          feeds << hash
         end
-        hash
       end
     else
       feeds += @user.feeds.select { |f| !feeds_specified.include?(f.url) }.map do |feed|
         hash = feed.as_json(except: [:id, :created_at, :updated_at])
         articles = feed.articles.order(published: :desc).limit(20)
-        hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
-        article = articles.first
-        if article.nil?
-          hash[:last_updated] = feed.updated_at
-        else
-          hash[:last_updated] = article.published
+        unless articles.empty?
+          hash[:articles] = articles.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+          article = articles.first
+          if article.nil?
+            hash[:last_updated] = feed.updated_at
+          else
+            hash[:last_updated] = article.published
+          end
+          hash
         end
-        hash
       end
     end
 
