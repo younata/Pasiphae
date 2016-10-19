@@ -27,6 +27,7 @@ module FeedHelper
   end
 
   def update_rss_feed(feed)
+    puts "updating #{feed.url}"
     response = RestClient.get feed.url
     Feedjira::Feed.add_common_feed_element 'image'
     Feedjira::Feed.add_common_feed_element 'icon'
