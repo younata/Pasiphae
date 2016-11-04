@@ -1,18 +1,48 @@
 require 'rest-client'
 require 'feedjira'
 require 'uri'
+require 'opml-parser'
+
+include OpmlParser
 
 module FeedHelper
   def is_feed?(url)
     uri = URI(url)
     unless ['http', 'https'].include? uri.scheme
-      return false
+      return nil
     end
     if Feed.exists?(url: [url + '/', url.chomp('/')])
-      return true
+      Feed.find_by(url: [url + '/', url.chomp('/')]).url
     else
       response = RestClient.get url
-      return !Feedjira::Feed.determine_feed_parser_for_xml(response.body).nil?
+      if Feedjira::Feed.determine_feed_parser_for_xml(response.body).nil?
+        nil
+      else
+        url
+      end
+    end
+  end
+
+  def is_opml?(url)
+    uri = URI(url)
+    unless ['http', 'https'].include? uri.scheme
+      return nil
+    end
+    response = RestClient.get url
+    opml_items = OpmlParser.import(response.body).map {|o| o.attributes}
+
+    urls = opml_items.map do |item|
+      xml_url_key = item.keys.find {|k| 'xmlurl' == k.to_s.downcase}
+      unless xml_url_key.nil?
+        item[xml_url_key]
+      end
+    end
+
+    urls = urls.select { |o| !o.nil? && !o.empty? }
+    if urls.empty?
+      nil
+    else
+      urls
     end
   end
 

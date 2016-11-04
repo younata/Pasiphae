@@ -11,55 +11,107 @@ RSpec.describe FeedHelper, type: :helper do
         expect(RestClient).to_not have_received(:get)
       end
 
-      it 'returns false without doing any further analysis' do
-        expect(is_feed?('file:///etc/passwd')).to eq(false)
+      it 'returns nil without doing any further analysis' do
+        expect(is_feed?('file:///etc/passwd')).to be_nil
       end
     end
     describe 'and the feed is not saved to the database' do
       describe 'and the data at the url does not exist' do
         let!(:failure_response) do
-          response_text = "no"
+          response_text = 'no'
           instance_double('RestClient::Response', code: 404, body: response_text)
         end
 
         it 'returns false' do
           allow(RestClient).to receive(:get).with('https://example.com/').and_return(failure_response)
-          expect(is_feed?('https://example.com/')).to eq(false)
+          expect(is_feed?('https://example.com/')).to be_nil
         end
       end
 
       describe 'and the data at the url is not a feed' do
         let!(:failure_response) do
-          response_text = "<html><body>hi</body></html>"
+          response_text = '<html><body>hi</body></html>'
           instance_double('RestClient::Response', code: 200, body: response_text)
         end
 
         it 'returns false' do
           allow(RestClient).to receive(:get).with('https://example.com/').and_return(failure_response)
-          expect(is_feed?('https://example.com/')).to eq(false)
+          expect(is_feed?('https://example.com/')).to be_nil
         end
       end
 
       describe 'and the data at the url is a feed' do
         let!(:successful_response) do
-          response_text = IO.read(Rails.root.join("spec", "fixtures", "rss2.0.xml"))
+          response_text = IO.read(Rails.root.join('spec', 'fixtures', 'rss2.0.xml'))
           instance_double('RestClient::Response', code: 200, body: response_text)
         end
 
         it 'returns true' do
           allow(RestClient).to receive(:get).with('https://example.com/').and_return(successful_response)
-          expect(is_feed?('https://example.com/')).to eq(true)
+          expect(is_feed?('https://example.com/')).to eq('https://example.com/')
         end
       end
     end
 
     describe 'and the feed exists in the database' do
       let!(:feed) do
-        Feed.create(title: nil, url: "https://example.com", summary: nil, image_url: nil)
+        Feed.create(title: nil, url: 'https://example.com', summary: nil, image_url: nil)
       end
 
       it 'returns true' do
-        expect(is_feed?(feed.url + '/')).to eq(true)
+        expect(is_feed?(feed.url + '/')).to eq('https://example.com')
+      end
+    end
+  end
+
+  describe 'is_opml?' do
+    describe 'and the url is not an http or https url' do
+      it 'does not try to load the url' do
+        allow(RestClient).to receive(:get)
+
+        is_opml?('file:///etc/passwd')
+
+        expect(RestClient).to_not have_received(:get)
+      end
+
+      it 'returns nil without doing any further analysis' do
+        expect(is_opml?('file:///etc/passwd')).to be_nil
+      end
+    end
+
+    describe 'and the data at the url is an opml file' do
+      let!(:success) do
+        response_text = IO.read(Rails.root.join('spec', 'fixtures', 'test.opml'))
+        instance_double('RestClient::Response', code: 200, body: response_text)
+      end
+
+      it 'returns a list of feeds' do
+        allow(RestClient).to receive(:get).with('https://example.com/').and_return(success)
+        expect(is_opml?('https://example.com/')).to eq(['http://example.com/feedWithTag', 'http://example.com/previouslyImportedFeed', 'http://example.com/feedWithTitle'])
+      end
+    end
+
+    describe 'and the data at the url is not an opml file' do
+      let!(:failure_response) do
+        response_text = 'no'
+        instance_double('RestClient::Response', code: 200, body: response_text)
+      end
+
+      it 'returns a list of feeds' do
+        allow(RestClient).to receive(:get).with('https://example.com/').and_return(failure_response)
+        expect(is_opml?('https://example.com/')).to be_nil
+      end
+    end
+
+    describe 'and there is no data at the url' do
+      let!(:failure_response) do
+        response_text = 'no'
+        instance_double('RestClient::Response', code: 404, body: response_text)
+      end
+
+      it 'returns nil' do
+        allow(RestClient).to receive(:get).with('https://example.com/').and_return(failure_response)
+        expect(is_opml?('https://example.com/')).to be_nil
       end
     end
   end

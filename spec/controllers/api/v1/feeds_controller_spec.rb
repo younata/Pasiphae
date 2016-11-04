@@ -33,7 +33,8 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
       describe 'with a url to check (that is invalid)' do
         before do
-          allow(FeedHelper).to receive(:is_feed?).with('https://example.com').and_return(false)
+          allow(FeedHelper).to receive(:is_feed?).with('https://example.com').and_return(nil)
+          allow(FeedHelper).to receive(:is_opml?).with('https://example.com').and_return(nil)
           get :check, params: {url: 'https://example.com'}
         end
 
@@ -42,14 +43,14 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         it 'tells the caller that the url is whatever FeedHelper tells it' do
-          expect(JSON.parse(response.body, symbolize_names: true)).to eq({'https://example.com': false})
+          expect(JSON.parse(response.body, symbolize_names: true)).to eq({'feed': nil, 'opml': nil})
           expect(FeedHelper).to have_received(:is_feed?).with('https://example.com')
         end
       end
 
       describe 'with a url to check (that is valid)' do
         before do
-          allow(FeedHelper).to receive(:is_feed?).with('https://example.com').and_return(true)
+          allow(FeedHelper).to receive(:is_feed?).with('https://example.com').and_return('https://example.com')
           get :check, params: {url: 'https://example.com'}
         end
 
@@ -58,8 +59,26 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         it 'tells the caller that the url is whatever FeedHelper tells it' do
-          expect(JSON.parse(response.body, symbolize_names: true)).to eq({'https://example.com': true})
+          expect(JSON.parse(response.body, symbolize_names: true)).to eq({'feed': 'https://example.com', 'opml': nil})
           expect(FeedHelper).to have_received(:is_feed?).with('https://example.com')
+        end
+      end
+
+      describe 'with a url to check (that is an opml)' do
+        before do
+          allow(FeedHelper).to receive(:is_feed?).with('https://example.com').and_return(nil)
+          allow(FeedHelper).to receive(:is_opml?).with('https://example.com').and_return(['https://example.com/1'])
+          get :check, params: {url: 'https://example.com'}
+        end
+
+        it 'returns http 200' do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'tells the caller that the url is whatever FeedHelper tells it' do
+          expect(JSON.parse(response.body, symbolize_names: true)).to eq({'feed': nil, 'opml': ['https://example.com/1']})
+          expect(FeedHelper).to have_received(:is_feed?).with('https://example.com')
+          expect(FeedHelper).to have_received(:is_opml?).with('https://example.com')
         end
       end
     end

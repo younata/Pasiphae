@@ -9,7 +9,12 @@ class Api::V1::FeedsController < Api::V1::ApiController
   def check
     url = params['url']
     unless url.nil?
-      render json: {url => FeedHelper::is_feed?(url)}
+      is_feed = FeedHelper::is_feed?(url)
+      unless is_feed.nil?
+        render json: {:feed => url, :opml => nil}
+      else
+        render json: {:feed => nil, :opml => FeedHelper::is_opml?(url)}
+      end
     else
       head(204)
     end
