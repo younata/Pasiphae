@@ -484,40 +484,6 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
         end
 
-        describe 'with a date parameter' do
-          before do
-            post :fetch, params: { date: 10.seconds.ago }
-          end
-
-          it 'returns http 200' do
-            expect(response).to have_http_status(:ok)
-          end
-
-          it 'returns feeds and articles published/updated since that date that the user is subscribed to' do
-            json = JSON.parse(response.body)
-            expected = JSON.parse(JSON.dump({
-              'last_updated': feed.updated_at.as_json,
-              'feeds': [{
-                'title': nil,
-                'url': 'https://example.com/',
-                'last_updated': new_article.published.as_json,
-                'summary': nil,
-                'image_url': nil,
-                'articles': [{
-                    'title': 'new',
-                    'url': 'https://example.com/new',
-                    'summary': nil,
-                    'published': new_article.published.as_json,
-                    'updated': nil,
-                    'content': 'this is a new article',
-                    'authors': [{'name': 'foo', 'email': nil}],
-                }]
-              }]
-            }))
-            expect(json).to eq(expected)
-          end
-        end
-
         describe 'with a feeds parameter (date parameter for a bunch of feeds)' do
           let!(:feed_2) do
             Feed.create(url: 'https://example.com/feed/2')
