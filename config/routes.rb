@@ -15,6 +15,8 @@ Rails.application.routes.draw do
       post 'feeds/fetch', to: 'feeds#fetch'
       get 'feeds/check', to: 'feeds#check'
       get 'feeds/feeds', to: 'feeds#feeds'
+
+      post 'articles/update', to: 'articles#update'
     end
   end
 
