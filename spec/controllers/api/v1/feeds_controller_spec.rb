@@ -4,7 +4,7 @@ require 'feed_helper'
 include FeedHelper
 
 RSpec.describe Api::V1::FeedsController, type: :controller do
-  describe "GET #check" do
+  describe 'GET #check' do
     it_behaves_like 'an api request' do
       before do
         get :check
@@ -84,7 +84,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
     end
   end
 
-  describe "POST #subscribe" do
+  describe 'POST #subscribe' do
     it_behaves_like 'an api request' do
       before do
         post :subscribe
@@ -271,7 +271,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
     end
   end
 
-  describe "POST #unsubscribe" do
+  describe 'POST #unsubscribe' do
     it_behaves_like 'an api request' do
       before do
         post :unsubscribe
@@ -437,7 +437,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
     end
   end
 
-  describe "POST #fetch" do
+  describe 'POST #fetch' do
     it_behaves_like 'an api request' do
       before do
         post :fetch
@@ -475,7 +475,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         end
 
         let!(:author) do
-          Author.new(name: "foo")
+          Author.new(name: 'foo')
         end
 
         before do
@@ -496,21 +496,21 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           it 'returns feeds and articles published/updated since that date that the user is subscribed to' do
             json = JSON.parse(response.body)
             expected = JSON.parse(JSON.dump({
-              "last_updated": feed.updated_at.as_json,
-              "feeds": [{
-                "title": nil,
-                "url": "https://example.com/",
-                "last_updated": new_article.published.as_json,
-                "summary": nil,
-                "image_url": nil,
-                "articles": [{
-                    "title": "new",
-                    "url": "https://example.com/new",
-                    "summary": nil,
-                    "published": new_article.published.as_json,
-                    "updated": nil,
-                    "content": "this is a new article",
-                    "authors": [{"name": "foo", "email": nil}],
+              'last_updated': feed.updated_at.as_json,
+              'feeds': [{
+                'title': nil,
+                'url': 'https://example.com/',
+                'last_updated': new_article.published.as_json,
+                'summary': nil,
+                'image_url': nil,
+                'articles': [{
+                    'title': 'new',
+                    'url': 'https://example.com/new',
+                    'summary': nil,
+                    'published': new_article.published.as_json,
+                    'updated': nil,
+                    'content': 'this is a new article',
+                    'authors': [{'name': 'foo', 'email': nil}],
                 }]
               }]
             }))
@@ -577,46 +577,46 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               }
             end
             expected = JSON.parse(JSON.dump({
-              "feeds": [
+              'feeds': [
                 {
-                  "last_updated": new_article.published.as_json,
-                  "title": nil,
-                  "url": "https://example.com/",
-                  "summary": nil,
-                  "image_url": nil,
-                  "articles": [{
-                      "title": "new",
-                      "url": "https://example.com/new",
-                      "summary": nil,
-                      "published": new_article.published.as_json,
-                      "updated": nil,
-                      "content": "this is a new article",
-                      "authors": [{"name": "foo", "email": nil}],
+                  'last_updated': new_article.published.as_json,
+                  'title': nil,
+                  'url': 'https://example.com/',
+                  'summary': nil,
+                  'image_url': nil,
+                  'articles': [{
+                      'title': 'new',
+                      'url': 'https://example.com/new',
+                      'summary': nil,
+                      'published': new_article.published.as_json,
+                      'updated': nil,
+                      'content': 'this is a new article',
+                      'authors': [{'name': 'foo', 'email': nil}],
                   }]
                 },
                 {
-                  "last_updated": new_article_2.published.as_json,
-                  "title": nil,
-                  "url": "https://example.com/feed/2",
-                  "summary": nil,
-                  "image_url": nil,
-                  "articles": [{
-                      "title": "new2",
-                      "url": "https://example.com/new_2",
-                      "summary": nil,
-                      "published": new_article_2.published.as_json,
-                      "updated": nil,
-                      "content": "this is a new article",
-                      "authors": [],
+                  'last_updated': new_article_2.published.as_json,
+                  'title': nil,
+                  'url': 'https://example.com/feed/2',
+                  'summary': nil,
+                  'image_url': nil,
+                  'articles': [{
+                      'title': 'new2',
+                      'url': 'https://example.com/new_2',
+                      'summary': nil,
+                      'published': new_article_2.published.as_json,
+                      'updated': nil,
+                      'content': 'this is a new article',
+                      'authors': [],
                   }]
                 },
                 {
-                  "last_updated": new_article_3.published.as_json,
-                  "title": nil,
-                  "url": "https://example.com/feed/3",
-                  "summary": nil,
-                  "image_url": nil,
-                  "articles": feed_3_articles
+                  'last_updated': new_article_3.published.as_json,
+                  'title': nil,
+                  'url': 'https://example.com/feed/3',
+                  'summary': nil,
+                  'image_url': nil,
+                  'articles': feed_3_articles
                 }
               ]
             }))
@@ -653,14 +653,14 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               }
             end
             expected = JSON.parse(JSON.dump({
-              "last_updated": feed.updated_at.as_json,
-              "feeds": [{
-                "title": nil,
-                "url": "https://example.com/",
-                "last_updated": new_article.published.as_json,
-                "summary": nil,
-                "image_url": nil,
-                "articles": articles
+              'last_updated': feed.updated_at.as_json,
+              'feeds': [{
+                'title': nil,
+                'url': 'https://example.com/',
+                'last_updated': new_article.published.as_json,
+                'summary': nil,
+                'image_url': nil,
+                'articles': articles
               }]
             }))
             expect(json).to eq(expected)
