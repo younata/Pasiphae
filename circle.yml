@@ -17,11 +17,11 @@ test:
     - cf auth $PWS_USER $PWS_PASSWORD
     - cf target -o $PWS_ORG -s $PWS_SPACE
 
-deployment:
-  production:
-    branch: master
-    commands:
-      - cf push pasiphae
-      - cf push pasiphae-worker
-      - cf push pasiphae-scheduler
-      - bundle exec rake ci:deliver
+#deployment:
+#  production:
+#    branch: master
+#    commands:
+#      - cf push pasiphae
+#      - cf push pasiphae-worker
+#      - cf push pasiphae-scheduler
+#      - bundle exec rake ci:deliver
