@@ -117,8 +117,12 @@ RSpec.describe FeedHelper, type: :helper do
   end
 
   describe 'refresh feed' do
+    let!(:user) do
+      User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
+    end
+
     let!(:feed) do
-      Feed.create(title: nil, url: "https://example.com", summary: nil, image_url: nil)
+      Feed.create(title: nil, url: 'https://example.com', summary: nil, image_url: nil)
     end
 
     context 'for an rss 2.0 feed' do
@@ -127,11 +131,14 @@ RSpec.describe FeedHelper, type: :helper do
       end
 
       let!(:successful_response) do
-        response_text = IO.read(Rails.root.join("spec", "fixtures", "rss2.0.xml"))
+        response_text = IO.read(Rails.root.join('spec', 'fixtures', 'rss2.0.xml'))
         instance_double('RestClient::Response', code: 200, body: response_text)
       end
 
       before do
+        user.feeds << feed
+        user.articles << article
+
         allow(RestClient).to receive(:get).with(feed.url).and_return(successful_response)
         update_rss_feed(feed)
       end
@@ -149,6 +156,7 @@ RSpec.describe FeedHelper, type: :helper do
       it 'inserts articles into the database for every new article it finds, without duplicating existing articles' do
         expect(feed.articles.count).to eq(11)
         expect(Article.all.count).to eq(11)
+        expect(user.user_articles.count).to eq(11)
       end
 
       it 'updates existing articles with new information about them' do
@@ -159,7 +167,7 @@ RSpec.describe FeedHelper, type: :helper do
 
     context 'for a feed with articles that have relative urls' do
       let!(:successful_response) do
-        response_text = IO.read(Rails.root.join("spec", "fixtures", "carthage_releases.xml"))
+        response_text = IO.read(Rails.root.join('spec', 'fixtures', 'carthage_releases.xml'))
         instance_double('RestClient::Response', code: 200, body: response_text)
       end
 
@@ -180,17 +188,18 @@ RSpec.describe FeedHelper, type: :helper do
 
     context 'for an atom feed' do
       let!(:article) do
-        a = Article.new(title: 'Atom draft-07 snapshot', content: 'this will be replaced', published: DateTime.parse('2003-12-13T08:29:29-04:00'), url: 'http://example.org/2005/04/02/atom', feed: feed)
-        a.save
-        a
+        Article.create(title: 'Atom draft-07 snapshot', content: 'this will be replaced', published: DateTime.parse('2003-12-13T08:29:29-04:00'), url: 'http://example.org/2005/04/02/atom', feed: feed)
       end
 
       let!(:successful_response) do
-        response_text = IO.read(Rails.root.join("spec", "fixtures", "atom.1.0.xml"))
+        response_text = IO.read(Rails.root.join('spec', 'fixtures', 'atom.1.0.xml'))
         instance_double('RestClient::Response', code: 200, body: response_text)
       end
 
       before do
+        user.feeds << feed
+        user.articles << article
+
         allow(RestClient).to receive(:get).with(feed.url).and_return(successful_response)
         update_rss_feed(feed)
       end
@@ -208,11 +217,12 @@ RSpec.describe FeedHelper, type: :helper do
       it 'inserts articles into the database for every new article it finds, without duplicating existing articles' do
         expect(Article.all.count).to eq(2)
         expect(feed.articles.count).to eq(2)
+        expect(user.user_articles.count).to eq(2)
       end
 
       it 'updates existing articles with new information about them' do
         updated_article = Article.find(article.id)
-        expect(updated_article.content).to eq("[Update: The Atom draft is finished.]")
+        expect(updated_article.content).to eq('[Update: The Atom draft is finished.]')
         expect(updated_article.updated).to eq(DateTime.parse('2005-07-31T12:29:29Z'))
 
         expect(updated_article.authors.count).to eq(1)

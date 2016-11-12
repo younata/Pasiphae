@@ -457,9 +457,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
       describe 'with an api token' do
         let!(:user) do
-          u = User.new(email: 'user@example.com', password: 'password', password_confirmation: 'password')
-          u.save
-          u
+          User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
         end
 
         let!(:feed) do

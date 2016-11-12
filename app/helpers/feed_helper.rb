@@ -65,6 +65,7 @@ module FeedHelper
     feed.title = channel.title
     feed.summary = channel.description
     feed.image_url = channel.image || channel.icon
+    feed_users = feed.users
 
     channel.entries.each do |item|
       item_url = item.url
@@ -93,9 +94,15 @@ module FeedHelper
           article.updated = item.updated
         end
         article.content = item.content
+        feed_users.each do |user|
+          user.articles << article
+        end
         feed.articles << article
       else
         article = Article.create(title: item.title, url: item_url, summary: item.summary, published: item.published || DateTime.now, content: item.content, updated: item.updated, feed: feed)
+        feed_users.each do |user|
+          user.articles << article
+        end
         if not article.valid?
           puts "Article #{item.url} is invalid!"
           puts article.errors.details.inspect
@@ -103,7 +110,6 @@ module FeedHelper
       end
 
       if item.author
-        author = nil
         if Author.exists?(name: item.author)
           author = Author.find_by(name: item.author)
         else
@@ -116,6 +122,7 @@ module FeedHelper
         end
       article.save
     end
+    feed_users.each {|u| u.save}
     feed.touch
     feed.save
   end
