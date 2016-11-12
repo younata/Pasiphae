@@ -118,9 +118,9 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'trying to subscribe to a not-http/https url' do
           before do
-              allow(FeedHelper).to receive(:is_feed?).with('file:///etc/passwd').and_return(false)
-              allow(FeedHelper).to receive(:is_feed?).with('mailto://example.com').and_return(false)
-            post :subscribe, params: { :feeds => ['file:///etc/passwd', 'mailto://example.com'] }
+            allow(FeedHelper).to receive(:is_feed?).with('file:///etc/passwd').and_return(false)
+            allow(FeedHelper).to receive(:is_feed?).with('mailto://example.com').and_return(false)
+            post :subscribe, params: {:feeds => ['file:///etc/passwd', 'mailto://example.com']}
           end
 
           it 'checks to make sure the feeds are actually feeds' do
@@ -144,7 +144,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'and none of the feeds specified exist already' do
           before do
-            post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
+            post :subscribe, params: {:feeds => ['https://example.com/1', 'https://example.com/2']}
           end
 
           it 'checks to make sure the feeds are actually feeds' do
@@ -188,7 +188,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           before do
             allow(FeedHelper).to receive(:is_feed?).with('https://example.com/1').and_return(true)
             allow(FeedHelper).to receive(:is_feed?).with('https://example.com/2').and_return(true)
-            post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
+            post :subscribe, params: {:feeds => ['https://example.com/1', 'https://example.com/2']}
           end
 
           it 'checks that the urls are actually feeds' do
@@ -235,7 +235,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             allow(FeedHelper).to receive(:is_feed?).with('https://example.com/2').and_return(true)
             user.feeds << feed
             user.save
-            post :subscribe, params: { :feeds => ['https://example.com/1', 'https://example.com/2'] }
+            post :subscribe, params: {:feeds => ['https://example.com/1', 'https://example.com/2']}
           end
 
           it 'creates only the unknown feeds' do
@@ -316,7 +316,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           before do
             user.feeds << feed
             user.save
-            post :unsubscribe, params: { :feeds => ['https://example.com/2'] }
+            post :unsubscribe, params: {:feeds => ['https://example.com/2']}
           end
 
           it 'returns http 200' do
@@ -339,7 +339,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           before do
             user.feeds << feed
             user.save
-            post :unsubscribe, params: { :feeds => ['https://example.com/2'] }
+            post :unsubscribe, params: {:feeds => ['https://example.com/2']}
           end
 
           it 'returns http 200' do
@@ -369,7 +369,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             user.feeds << feed
             user.feeds << feed2
             user.save
-            post :unsubscribe, params: { :feeds => ['https://example.com/2'] }
+            post :unsubscribe, params: {:feeds => ['https://example.com/2']}
           end
 
           it 'unsubscribes the user from that feed' do
@@ -470,6 +470,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           Article.create(title: 'old', updated: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old', feed: feed, content: 'this is an old article')
         end
 
+        let!(:old_read_article) do
+          Article.create(title: 'old_read', updated: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_read', feed: feed, content: 'this is an old article')
+        end
+
         let!(:new_article) do
           Article.create(title: 'new', published: 0.seconds.ago, url: 'https://example.com/new', feed: feed, content: 'this is a new article')
         end
@@ -480,6 +484,19 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         before do
           user.feeds << feed
+          user.articles = [old_article, old_read_article, new_article]
+
+          [old_article, new_article].each do |article|
+            user_article = article.user_articles.first
+            user_article.updated_at = 15.seconds.ago
+            user_article.save
+          end
+
+          user_article = old_read_article.user_articles.first
+          user_article.read = true
+          user_article.updated_at = 0.seconds.ago
+          user_article.save
+
           new_article.authors << author
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
         end
@@ -494,23 +511,50 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           end
 
           let!(:old_article_2) do
-            Article.create(title: 'old2', updated: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_2', feed: feed_2, content: 'this is an old article')
+            article = Article.create(title: 'old2', updated: 15.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_2', feed: feed_2, content: 'this is an old article')
+            user.articles << article
+            user_article = article.user_articles.first
+            user_article.updated_at = article.published
+            user_article.save
+            article
           end
 
           let!(:old_article_3) do
-            Article.create(title: 'old3', updated: 8.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_3', feed: feed_3, content: 'this is an old article')
+            article = Article.create(title: 'old3', updated: 8.seconds.ago, published: 20.seconds.ago, url: 'https://example.com/old_3', feed: feed_3, content: 'this is an old article')
+            user.articles << article
+            user_article = article.user_articles.first
+            user_article.updated_at = article.published
+            user_article.save
+            article
           end
 
           let!(:new_article_2) do
-            Article.create(title: 'new2', published: 0.seconds.ago, url: 'https://example.com/new_2', feed: feed_2, content: 'this is a new article')
+            article = Article.create(title: 'new2', published: 0.seconds.ago, url: 'https://example.com/new_2', feed: feed_2, content: 'this is a new article')
+            user.articles << article
+            user_article = article.user_articles.first
+            user_article.updated_at = article.published
+            user_article.save
+            article
           end
 
           let!(:new_article_3) do
-            Article.create(title: 'new3', published: 0.seconds.ago, updated: 0.seconds.ago, url: 'https://example.com/new_3', feed: feed_3, content: 'this is a new article')
+            article = Article.create(title: 'new3', published: 0.seconds.ago, updated: 0.seconds.ago, url: 'https://example.com/new_3', feed: feed_3, content: 'this is a new article')
+            user.articles << article
+            user_article = article.user_articles.first
+            user_article.updated_at = article.published
+            user_article.save
+            article
           end
 
           let!(:extra_articles) do
-            create_list(:article, 19, feed: feed_3)
+            articles = create_list(:article, 19, feed: feed_3)
+            articles.each do |article|
+              user.articles << article
+              user_article = article.user_articles.first
+              user_article.updated_at = article.published
+              user_article.save
+            end
+            articles
           end
 
           before do
@@ -530,7 +574,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           it 'returns feeds and articles published/updated since that date for the given feed + the most recent 20 articles for the other feeds that the user is subscribed to' do
             json = JSON.parse(response.body)
 
-            sorted_extra_articles = extra_articles.sort_by {|a| a.published }.reverse
+            sorted_extra_articles = extra_articles.sort_by { |a| a.published }.reverse
             feed_3_articles = ([new_article_3] + sorted_extra_articles).map do |a|
               {
                 title: a.title,
@@ -539,9 +583,11 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                 published: a.published.as_json,
                 updated: a.updated.as_json,
                 content: a.content,
-                authors: a.authors.map {|author| {name: author.name, email: nil }},
+                authors: a.authors.map { |author| {name: author.name, email: nil} },
+                read: false,
               }
             end
+
             expected = JSON.parse(JSON.dump({
               'feeds': [
                 {
@@ -550,7 +596,8 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   'url': 'https://example.com/',
                   'summary': nil,
                   'image_url': nil,
-                  'articles': [{
+                  'articles': [
+                    {
                       'title': 'new',
                       'url': 'https://example.com/new',
                       'summary': nil,
@@ -558,7 +605,19 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                       'updated': nil,
                       'content': 'this is a new article',
                       'authors': [{'name': 'foo', 'email': nil}],
-                  }]
+                      'read': false,
+                    },
+                    {
+                      'title': 'old_read',
+                      'url': 'https://example.com/old_read',
+                      'summary': nil,
+                      'published': old_read_article.published.as_json,
+                      'updated': old_read_article.updated.as_json,
+                      'content': 'this is an old article',
+                      'authors': [],
+                      'read': true,
+                    }
+                  ]
                 },
                 {
                   'last_updated': new_article_2.published.as_json,
@@ -567,13 +626,14 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   'summary': nil,
                   'image_url': nil,
                   'articles': [{
-                      'title': 'new2',
-                      'url': 'https://example.com/new_2',
-                      'summary': nil,
-                      'published': new_article_2.published.as_json,
-                      'updated': nil,
-                      'content': 'this is a new article',
-                      'authors': [],
+                    'title': 'new2',
+                    'url': 'https://example.com/new_2',
+                    'summary': nil,
+                    'published': new_article_2.published.as_json,
+                    'updated': nil,
+                    'content': 'this is a new article',
+                    'authors': [],
+                    'read': false,
                   }]
                 },
                 {
@@ -586,14 +646,21 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                 }
               ]
             }))
-            
+
             expect(json).to eq(expected)
           end
         end
 
         describe 'without a date parameter' do
           let!(:extra_articles) do
-            create_list(:article, 19, feed: feed)
+            articles = create_list(:article, 19, feed: feed)
+            articles.each do |article|
+              user.articles << article
+              user_article = article.user_articles.first
+              user_article.updated_at = article.published
+              user_article.save
+            end
+            articles
           end
 
           before do
@@ -606,7 +673,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
           it 'returns all feeds and the 20 most recent articles for those feeds that the user is subscribed to' do
             json = JSON.parse(response.body)
-            sorted_extra_articles = extra_articles.sort_by {|a| a.published }.reverse
+            sorted_extra_articles = extra_articles.sort_by { |a| a.published }.reverse
             articles = ([new_article] + sorted_extra_articles).map do |a|
               {
                 title: a.title,
@@ -615,7 +682,8 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                 published: a.published.as_json,
                 updated: a.updated.as_json,
                 content: a.content,
-                authors: a.authors.map {|author| {name: author.name, email: nil }},
+                authors: a.authors.map { |author| {name: author.name, email: nil} },
+                read: a.user_articles.first.read,
               }
             end
             expected = JSON.parse(JSON.dump({
