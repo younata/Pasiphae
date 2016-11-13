@@ -24,13 +24,15 @@ class Api::V1::FeedsController < Api::V1::ApiController
     feeds_list = params['feeds']
     feeds_list.select {|url| FeedHelper::is_feed?(url)}.each do |url|
       feed = Feed.find_by(url: url)
-      unless feed
+      if feed.nil?
         feed = Feed.create(url: url)
         FeedRefresher.perform(feed)
-      end
-      unless @user.feeds.exists?(feed.id)
         @user.feeds << feed
+      elsif !@user.feeds.exists?(feed.id)
+        @user.feeds << feed
+        @user.articles << feed.articles
       end
+      @user.save
     end
     render json: @user.feeds.map {|f| f.url}
   end
@@ -39,6 +41,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
     feeds_list = params['feeds']
     feeds_to_delete = feeds_list.map { |url| @user.feeds.find_by(url: url) }.compact
     @user.feeds.delete(feeds_to_delete)
+    @user.articles.delete(feeds_to_delete.map { |f| f.articles })
     render json: @user.feeds.map {|f| f.url}
   end
 

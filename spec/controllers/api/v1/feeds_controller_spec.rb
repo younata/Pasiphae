@@ -104,9 +104,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
       describe 'with an api token' do
         let!(:user) do
-          u = User.new(email: 'user@example.com', password: 'password', password_confirmation: 'password')
-          u.save
-          u
+          User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
         end
 
         before do
@@ -185,6 +183,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
             Feed.create(url: 'https://example.com/1')
           end
 
+          let!(:article) do
+            Article.create(title: 'new', published: 0.seconds.ago, url: 'https://example.com/new', feed: feed, content: 'this is a new article')
+          end
+
           before do
             allow(FeedHelper).to receive(:is_feed?).with('https://example.com/1').and_return(true)
             allow(FeedHelper).to receive(:is_feed?).with('https://example.com/2').and_return(true)
@@ -214,6 +216,12 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
             expect(user.feeds.exists?(feed.id)).to be_truthy
             expect(user.feeds.exists?(feed2.id)).to be_truthy
+          end
+
+          it 'marks all articles in existing feeds as unread for the user' do
+            expect(article.user_articles.count).to eq(1)
+            expect(article.user_articles.first.user).to eq(user)
+            expect(article.user_articles.first.read).to be_falsy
           end
 
           it 'returns http 200' do
@@ -291,9 +299,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
       describe 'with an api token' do
         let!(:user) do
-          u = User.new(email: 'user@example.com', password: 'password', password_confirmation: 'password')
-          u.save
-          u
+          User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
         end
 
         before do
@@ -302,15 +308,11 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'and the user is not subscribed to any of the specified feeds' do
           let!(:feed) do
-            f = Feed.new(url: 'https://example.com/1')
-            f.save
-            f
+            Feed.create(url: 'https://example.com/1')
           end
 
           let!(:feed2) do
-            f = Feed.new(url: 'https://example.com/2')
-            f.save
-            f
+            Feed.create(url: 'https://example.com/2')
           end
 
           before do
@@ -331,9 +333,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'and the feed the user wishes to unsubscribe from does not exist' do
           let!(:feed) do
-            f = Feed.new(url: 'https://example.com/1')
-            f.save
-            f
+            Feed.create(url: 'https://example.com/1')
           end
 
           before do
@@ -354,20 +354,25 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
         describe 'and the user is subscribed to the specified feeds' do
           let!(:feed) do
-            f = Feed.new(url: 'https://example.com/1')
-            f.save
-            f
+            Feed.create(url: 'https://example.com/1')
           end
 
           let!(:feed2) do
-            f = Feed.new(url: 'https://example.com/2')
-            f.save
-            f
+            Feed.create(url: 'https://example.com/2')
+          end
+
+          let!(:article) do
+            Article.create(title: 'new', published: 0.seconds.ago, url: 'https://example.com/new', feed: feed, content: 'this is a new article')
+          end
+
+          let!(:article2) do
+            Article.create(title: '2', published: 0.seconds.ago, url: 'https://example.com/new_2', feed: feed2, content: 'this is a new article')
           end
 
           before do
             user.feeds << feed
             user.feeds << feed2
+            user.articles << [article, article2]
             user.save
             post :unsubscribe, params: {:feeds => ['https://example.com/2']}
           end
@@ -384,6 +389,15 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           it 'returns the list of feeds the user is subscribed to' do
             json = JSON.parse(response.body)
             expect(json).to eq(['https://example.com/1'])
+          end
+
+          it 'removes the articles of the deleted feeds from the user' do
+            expect(article2.user_articles.count).to eq(0)
+          end
+
+          it 'does not remove articles of feeds that are not specified from the user' do
+            expect(article.user_articles.count).to eq(1)
+            expect(article.user_articles.first.user).to eq(user)
           end
         end
       end
