@@ -64,7 +64,11 @@ module FeedHelper
     channel = Feedjira::Feed.parse(response.body)
     feed.title = channel.title
     feed.summary = channel.description
-    feed.image_url = channel.image || channel.icon
+    if channel.image.nil?
+      feed.image_url = channel.icon
+    else
+      feed.image_url = channel.image.url
+    end
     feed_users = feed.users
 
     channel.entries.each do |item|
