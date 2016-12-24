@@ -99,13 +99,17 @@ module FeedHelper
         end
         article.content = item.content
         feed_users.each do |user|
-          user.articles << article
+          unless user.articles.include? article
+            user.articles << article
+          end
         end
         feed.articles << article
       else
         article = Article.create(title: item.title, url: item_url, summary: item.summary, published: item.published || DateTime.now, content: item.content, updated: item.updated, feed: feed)
         feed_users.each do |user|
-          user.articles << article
+          unless user.articles.include? article
+            user.articles << article
+          end
         end
         if not article.valid?
           puts "Article #{item.url} is invalid!"
