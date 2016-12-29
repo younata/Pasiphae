@@ -138,8 +138,27 @@ class Api::V1::FeedsController < Api::V1::ApiController
 
       articles = Feed.find_by(url: feed_url).articles.order(published: :desc).limit(MAX_NUMBER_OF_ARTICLES).offset(offset)
 
+      @device = authenticate_with_http_token { |t, o| Device.find_by(api_token: t) }
+      if @device.nil?
+        @user = nil
+      else
+        @user = @device.user
+        if @user.feeds.exists?(url: feed_url)
+          articles = articles.joins(:user_articles).where('user_articles.user_id = ?', @user.id)
+        else
+          @user = nil
+        end
+      end
+
+
       articles_hash = articles.map do |article|
         json = article.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+        if @user.nil?
+          json[:read] = false
+        else
+          user_article = article.user_articles.find_by(user_id: @user.id)
+          json[:read] = user_article.read
+        end
         json
       end
 

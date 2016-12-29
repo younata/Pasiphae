@@ -785,7 +785,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                 updated: a.updated.as_json,
                 content: a.content,
                 authors: a.authors.map { |author| {name: author.name, email: nil} },
-                # read: false,
+                read: false,
               }
             end
 
@@ -816,7 +816,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   updated: a.updated.as_json,
                   content: a.content,
                   authors: a.authors.map { |author| {name: author.name, email: nil} },
-                  # read: false,
+                  read: false,
                 }
               end
 
@@ -846,7 +846,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   updated: a.updated.as_json,
                   content: a.content,
                   authors: a.authors.map { |author| {name: author.name, email: nil} },
-                  # read: false,
+                  read: false,
                 }
               end
 
@@ -876,7 +876,7 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
                   updated: a.updated.as_json,
                   content: a.content,
                   authors: a.authors.map { |author| {name: author.name, email: nil} },
-                  # read: false,
+                  read: false,
                 }
               end
 
@@ -897,6 +897,83 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
 
             it 'returns a json document of the most recent 10 articles for this feed' do
               expected_json = JSON.parse(JSON.dump({'articles': []}))
+
+              expect(JSON.parse(response.body)).to eq(expected_json)
+            end
+          end
+        end
+
+        describe 'when a user makes this request' do
+          let!(:user) do
+            User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
+          end
+
+          before do
+            request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
+          end
+
+          describe 'and the user is not subscribed to this feed' do
+            before do
+              get :articles, params: {feed: 'https://example.com/1', page: 1}
+            end
+
+            it 'returns http 200' do
+              expect(response).to have_http_status(200)
+            end
+
+            it 'includes read information for the articles' do
+              sorted_articles = articles.sort_by { |a| a.published }.reverse
+              articles_as_hash = sorted_articles.take(10).map do |a|
+                {
+                  title: a.title,
+                  url: a.url,
+                  summary: a.summary,
+                  published: a.published.as_json,
+                  updated: a.updated.as_json,
+                  content: a.content,
+                  authors: a.authors.map { |author| {name: author.name, email: nil} },
+                  read: false,
+                }
+              end
+
+              expected_json = JSON.parse(JSON.dump({'articles': articles_as_hash}))
+
+              expect(JSON.parse(response.body)).to eq(expected_json)
+            end
+          end
+
+          describe 'and the user is subscribed to this feed' do
+            before do
+              user.feeds << feed
+              user.articles = articles
+
+              user.save
+            end
+
+            before do
+              get :articles, params: {feed: 'https://example.com/1', page: 1}
+            end
+
+            it 'returns http 200' do
+              expect(response).to have_http_status(200)
+            end
+
+            it 'includes read information for the articles' do
+              sorted_articles = articles.sort_by { |a| a.published }.reverse
+              articles_as_hash = sorted_articles.take(10).map do |a|
+                {
+                  title: a.title,
+                  url: a.url,
+                  summary: a.summary,
+                  published: a.published.as_json,
+                  updated: a.updated.as_json,
+                  content: a.content,
+                  authors: a.authors.map { |author| {name: author.name, email: nil} },
+                  read: false,
+                }
+              end
+
+              expected_json = JSON.parse(JSON.dump({'articles': articles_as_hash}))
 
               expect(JSON.parse(response.body)).to eq(expected_json)
             end
