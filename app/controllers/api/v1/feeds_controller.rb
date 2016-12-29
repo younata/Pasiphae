@@ -62,7 +62,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
           feed = @user.feeds.find_by(url: key)
           unless feed.nil?
             hash = feed.as_json(except: [:id, :created_at, :updated_at])
-            articles = feed.articles.joins(:user_articles).where("updated > ? OR published > ? OR user_articles.updated_at > ?", date, date, date).order(published: :desc)
+            articles = feed.articles.joins(:user_articles).where("user_articles.user_id = ? AND (updated > ? OR published > ? OR user_articles.updated_at > ?)", @user.id, date, date, date).order(published: :desc)
             articles_json = articles.map do |article|
               user_article = article.user_articles.find_by(user: @user)
               if user_article.nil?
@@ -88,7 +88,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
     end
     feeds += @user.feeds.where.not(url: feeds_specified).map do |feed|
       hash = feed.as_json(except: [:id, :created_at, :updated_at])
-      articles = feed.articles.joins(:user_articles).order(published: :desc).limit(20)
+      articles = feed.articles.joins(:user_articles).where("user_articles.user_id = ?", @user.id).order(published: :desc).limit(20)
       articles_json = articles.map do |article|
         user_article = article.user_articles.find_by(user: @user)
         if user_article.nil?

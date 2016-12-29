@@ -474,6 +474,10 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
           User.create(email: 'user@example.com', password: 'password', password_confirmation: 'password')
         end
 
+        let!(:user_2) do
+          User.create(email: 'user2@example.com', password: 'password', password_confirmation: 'password')
+        end
+
         let!(:feed) do
           Feed.create(url: 'https://example.com/')
         end
@@ -497,17 +501,21 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
         before do
           user.feeds << feed
           user.articles = [old_article, old_read_article, new_article]
+          user_2.feeds << feed
+          user_2.articles = [old_article, old_read_article, new_article]
 
           [old_article, new_article].each do |article|
-            user_article = article.user_articles.first
-            user_article.updated_at = 15.seconds.ago
-            user_article.save
+            article.user_articles.each do |user_article|
+              user_article.updated_at = 15.seconds.ago
+              user_article.save
+            end
           end
 
-          user_article = old_read_article.user_articles.first
-          user_article.read = true
-          user_article.updated_at = 0.seconds.ago
-          user_article.save
+          old_read_article.user_articles.each do |user_article|
+            user_article.read = true
+            user_article.updated_at = 0.seconds.ago
+            user_article.save
+          end
 
           new_article.authors << author
           request.headers['Authorization'] = "Token token=\"#{user.devices.first.api_token}\""
