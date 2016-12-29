@@ -124,6 +124,29 @@ class Api::V1::FeedsController < Api::V1::ApiController
     render json: json_to_render
   end
 
+  MAX_NUMBER_OF_ARTICLES = 10
+  def articles
+    feed_url = params['feed']
+    if feed_url.nil?
+      head(204)
+    else
+      unless Feed.exists?(url: feed_url)
+        return head(204)
+      end
+      page = (params['page'] || 1).to_i
+      offset = (page - 1) * MAX_NUMBER_OF_ARTICLES
+
+      articles = Feed.find_by(url: feed_url).articles.order(published: :desc).limit(MAX_NUMBER_OF_ARTICLES).offset(offset)
+
+      articles_hash = articles.map do |article|
+        json = article.as_json(include: { :authors => { except: [:id, :article_id]}}, except: [:id, :feed_id, :created_at, :updated_at])
+        json
+      end
+
+      render json: {articles: articles_hash}
+    end
+  end
+
 private
 
   def restrict_api_access

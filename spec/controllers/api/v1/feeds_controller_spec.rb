@@ -715,4 +715,186 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
       end
     end
   end
+
+  describe 'get #articles' do
+    it_behaves_like 'an api request' do
+      before do
+        get :articles
+      end
+    end
+
+    describe 'with an application token' do
+      before do
+        request.headers['X-APP-TOKEN'] = 'GreatSuccess'
+      end
+
+      describe 'and no feed to check is given' do
+        before do
+          get :articles
+        end
+
+        it 'returns http 204' do
+          expect(response).to have_http_status(204)
+        end
+      end
+
+      describe 'and the feed given is not in the database' do
+        before do
+          get :articles, params: {feed: 'https://example.com/1'}
+        end
+
+        it 'returns http 204' do
+          expect(response).to have_http_status(204)
+        end
+      end
+
+      describe 'and the feed given is in the database' do
+        let!(:feed) do
+          Feed.create(url: 'https://example.com/1')
+        end
+
+        let!(:articles) do
+          create_list(:article, 25, feed: feed)
+        end
+
+        describe 'with no paging information' do
+          before do
+            get :articles, params: {feed: 'https://example.com/1'}
+          end
+
+          it 'returns http 200' do
+            expect(response).to have_http_status(200)
+          end
+
+          it 'returns a json document of the most recent 10 articles for this feed' do
+            sorted_articles = articles.sort_by { |a| a.published }.reverse
+            articles_as_hash = sorted_articles.take(10).map do |a|
+              {
+                title: a.title,
+                url: a.url,
+                summary: a.summary,
+                published: a.published.as_json,
+                updated: a.updated.as_json,
+                content: a.content,
+                authors: a.authors.map { |author| {name: author.name, email: nil} },
+                # read: false,
+              }
+            end
+
+            expected_json = JSON.parse(JSON.dump({'articles': articles_as_hash}))
+
+            expect(JSON.parse(response.body)).to eq(expected_json)
+          end
+        end
+
+        describe 'with paging information' do
+          describe 'asking for the first page' do
+            before do
+              get :articles, params: {feed: 'https://example.com/1', page: 1}
+            end
+
+            it 'returns http 200' do
+              expect(response).to have_http_status(200)
+            end
+
+            it 'returns a json document of the most recent 10 articles for this feed' do
+              sorted_articles = articles.sort_by { |a| a.published }.reverse
+              articles_as_hash = sorted_articles.take(10).map do |a|
+                {
+                  title: a.title,
+                  url: a.url,
+                  summary: a.summary,
+                  published: a.published.as_json,
+                  updated: a.updated.as_json,
+                  content: a.content,
+                  authors: a.authors.map { |author| {name: author.name, email: nil} },
+                  # read: false,
+                }
+              end
+
+              expected_json = JSON.parse(JSON.dump({'articles': articles_as_hash}))
+
+              expect(JSON.parse(response.body)).to eq(expected_json)
+            end
+          end
+
+          describe 'asking for the second page' do
+            before do
+              get :articles, params: {feed: 'https://example.com/1', page: 2}
+            end
+
+            it 'returns http 200' do
+              expect(response).to have_http_status(200)
+            end
+
+            it 'returns a json document of the most recent 10-20 articles for this feed' do
+              sorted_articles = articles.sort_by { |a| a.published }.reverse
+              articles_as_hash = sorted_articles[10..19].map do |a|
+                {
+                  title: a.title,
+                  url: a.url,
+                  summary: a.summary,
+                  published: a.published.as_json,
+                  updated: a.updated.as_json,
+                  content: a.content,
+                  authors: a.authors.map { |author| {name: author.name, email: nil} },
+                  # read: false,
+                }
+              end
+
+              expected_json = JSON.parse(JSON.dump({'articles': articles_as_hash}))
+
+              expect(JSON.parse(response.body)).to eq(expected_json)
+            end
+          end
+
+          describe 'asking for a page with partial amount of articles' do
+            before do
+              get :articles, params: {feed: 'https://example.com/1', page: 3}
+            end
+
+            it 'returns http 200' do
+              expect(response).to have_http_status(200)
+            end
+
+            it 'returns a json document of the most recent 20+ articles for this feed' do
+              sorted_articles = articles.sort_by { |a| a.published }.reverse
+              articles_as_hash = sorted_articles[20..25].map do |a|
+                {
+                  title: a.title,
+                  url: a.url,
+                  summary: a.summary,
+                  published: a.published.as_json,
+                  updated: a.updated.as_json,
+                  content: a.content,
+                  authors: a.authors.map { |author| {name: author.name, email: nil} },
+                  # read: false,
+                }
+              end
+
+              expected_json = JSON.parse(JSON.dump({'articles': articles_as_hash}))
+
+              expect(JSON.parse(response.body)).to eq(expected_json)
+            end
+          end
+
+          describe 'asking for paging information beyond the bounds of the recorded articles' do
+            before do
+              get :articles, params: {feed: 'https://example.com/1', page: 10}
+            end
+
+            it 'returns http 200' do
+              expect(response).to have_http_status(200)
+            end
+
+            it 'returns a json document of the most recent 10 articles for this feed' do
+              expected_json = JSON.parse(JSON.dump({'articles': []}))
+
+              expect(JSON.parse(response.body)).to eq(expected_json)
+            end
+          end
+        end
+      end
+    end
+  end
 end
