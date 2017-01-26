@@ -57,11 +57,19 @@ module FeedHelper
   end
 
   def update_rss_feed(feed)
-    puts "updating #{feed.url}"
+    puts "downloading #{feed.url}"
+    past = Time.now
     response = RestClient.get feed.url
     Feedjira::Feed.add_common_feed_element 'image'
     Feedjira::Feed.add_common_feed_element 'icon'
     channel = Feedjira::Feed.parse(response.body)
+    puts "downloaded #{feed.url}, took #{Time.now - past} seconds"
+    update_feed_from_channel(channel, feed)
+  end
+
+private
+  def update_feed_from_channel(channel, feed)
+    past = Time.now
     feed.title = channel.title
     feed.summary = channel.description
     if channel.image.nil?
@@ -133,5 +141,31 @@ module FeedHelper
     feed_users.each {|u| u.save}
     feed.touch
     feed.save
+    now = Time.now
+    puts "Updated #{feed.url}, took #{now - past} seconds"
+  end
+
+  def download_urls(feeds)
+    output = []
+    threads = []
+    feeds.each do |feed|
+      threads << Thread.new do
+        begin
+          puts "downloading #{feed.url}"
+          past = Time.now
+          response = RestClient::Request.execute(method: :get, url: feed.url, timeout: 10)
+          # response = RestClient.get feed.url
+          now = Time.now
+          puts "downloaded #{feed.url}, took #{now - past} seconds"
+          Feedjira::Feed.add_common_feed_element 'image'
+          Feedjira::Feed.add_common_feed_element 'icon'
+          output << [Feedjira::Feed.parse(response.body), feed]
+        rescue Exception => e
+          puts "Error downloading feed: #{e}"
+        end
+      end
+    end
+    threads.each { |t| t.join }
+    output
   end
 end
