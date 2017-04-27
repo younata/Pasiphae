@@ -52,10 +52,7 @@ class Api::V1::FeedsController < Api::V1::ApiController
   def fetch
     feeds = []
     feeds_specified = []
-    use_old_lastupdated_behavior = true
     if params['feeds']
-      use_old_lastupdated_behavior = false
-
       JSON.parse(params['feeds']).each do |key, value|
         date = DateTime.parse(value)
         if date
@@ -111,16 +108,6 @@ class Api::V1::FeedsController < Api::V1::ApiController
 
     json_to_render = {feeds: feeds}
 
-    if use_old_lastupdated_behavior
-      last_updated_feed = Feed.order(updated_at: :asc).first
-
-      if last_updated_feed.nil?
-        last_updated = Time.now
-      else
-        last_updated = last_updated_feed.updated_at
-      end
-      json_to_render[:last_updated] = last_updated
-    end
     render json: json_to_render
   end
 

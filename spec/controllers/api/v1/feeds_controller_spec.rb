@@ -707,7 +707,6 @@ RSpec.describe Api::V1::FeedsController, type: :controller do
               }
             end
             expected = JSON.parse(JSON.dump({
-              'last_updated': feed.updated_at.as_json,
               'feeds': [{
                 'title': nil,
                 'url': 'https://example.com/',
